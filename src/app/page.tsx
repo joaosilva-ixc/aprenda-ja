@@ -23,6 +23,9 @@ type Aula = {
   status: string;
   tags: string[];
   createdAt: string;
+  viewCount: number;
+  favorite?: boolean;
+  completed?: boolean;
   theme: Tema;
 };
 
@@ -316,6 +319,33 @@ function AulaCard({
   const canPlay = aula.status === "READY" || aula.status === "SYNCED";
   const hasTags = aula.tags.length > 0;
 
+  const [fav, setFav] = useState(aula.favorite ?? false);
+  const [favBusy, setFavBusy] = useState(false);
+
+  async function toggleFavorite(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (favBusy || isAdmin) return;
+    setFavBusy(true);
+    const target = !fav;
+    setFav(target);
+    try {
+      const res = await fetch("/api/progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ aulaId: aula.id, favorite: target }),
+      });
+      if (!res.ok) {
+        setFav(!target);
+        throw new Error("Erro ao favoritar.");
+      }
+    } catch {
+      // silencioso no card
+    } finally {
+      setFavBusy(false);
+    }
+  }
+
   const content = (
     <article
       className="card-hover animate-fade-up group flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl bg-white shadow-lg shadow-blue-900/10 [animation-delay:0ms]"
@@ -355,6 +385,38 @@ function AulaCard({
           {aula.theme.name}
         </span>
         {isAdmin && <DeleteAulaButton aulaId={aula.id} />}
+        {!isAdmin && aula.completed && (
+          <span
+            className="absolute right-3 bottom-3 flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500 text-white shadow-lg"
+            title="Aula concluída"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+            </svg>
+          </span>
+        )}
+        {!isAdmin && (
+          <button
+            type="button"
+            aria-label={fav ? "Remover dos favoritos" : "Favoritar aula"}
+            onClick={toggleFavorite}
+            className="absolute top-3 left-3 flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur transition hover:bg-black/60"
+          >
+            <svg
+              className={`h-4 w-4 transition ${fav ? "text-rose-500" : "text-white/80"}`}
+              viewBox="0 0 24 24"
+              fill={fav ? "currentColor" : "none"}
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"
+              />
+            </svg>
+          </button>
+        )}
       </div>
 
       {/* Corpo */}
@@ -378,21 +440,40 @@ function AulaCard({
         )}
 
         <div className="mt-4 flex items-center justify-between border-t border-gray-100 pt-3">
-          <span className="text-xs text-gray-400">
-            {new Date(aula.createdAt).toLocaleDateString("pt-BR", {
-              day: "2-digit",
-              month: "short",
-            })}
+          <span className="flex items-center gap-1.5 text-xs text-gray-400">
+            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"
+              />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+            </svg>
+            {aula.viewCount ?? 0}
+            <span className="ml-1.5 text-gray-300">·</span>
+            <span>
+              {new Date(aula.createdAt).toLocaleDateString("pt-BR", {
+                day: "2-digit",
+                month: "short",
+              })}
+            </span>
           </span>
           <span
             className={`inline-flex items-center gap-1 text-sm font-semibold transition ${
               canPlay
-                ? "text-blue-600 group-hover:gap-2"
+                ? aula.completed
+                  ? "text-emerald-600"
+                  : "text-blue-600 group-hover:gap-2"
                 : "text-gray-300"
             }`}
           >
-            {canPlay ? "Assistir" : "Indisponível"}
-            {canPlay && (
+            {!canPlay ? "Indisponível" : aula.completed ? "Concluída" : "Assistir"}
+            {canPlay && aula.completed && (
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+              </svg>
+            )}
+            {canPlay && !aula.completed && (
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12l-7.5 7.5M21 12H3" />
               </svg>

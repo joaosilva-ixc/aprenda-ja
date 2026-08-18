@@ -2,7 +2,9 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
+import { recordStudyActivity } from "@/lib/progress";
 import { DeleteAulaButton } from "@/components/DeleteAulaButton";
+import { AulaPlayer } from "@/components/AulaPlayer";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -35,6 +37,7 @@ export default async function AulaPage({
 
   const canPlay = Boolean(aula.videoUrl) && (aula.status === "READY" || aula.status === "SYNCED");
 
+  let progress = null;
   if (canPlay && user.role !== "ADMIN") {
     await prisma.aula.update({
       where: { id },
@@ -43,6 +46,15 @@ export default async function AulaPage({
     await prisma.user.update({
       where: { id: user.id },
       data: { lastAccessAt: new Date() },
+    });
+    await prisma.aulaProgress.upsert({
+      where: { userId_aulaId: { userId: user.id, aulaId: id } },
+      update: { lastAccessedAt: new Date() },
+      create: { userId: user.id, aulaId: id },
+    });
+    await recordStudyActivity(user.id);
+    progress = await prisma.aulaProgress.findUnique({
+      where: { userId_aulaId: { userId: user.id, aulaId: id } },
     });
   }
 
@@ -101,17 +113,18 @@ export default async function AulaPage({
         <div className="px-6 py-6 sm:px-8">
           <p className="whitespace-pre-line text-gray-600">{aula.description}</p>
 
-          <div className="mt-6 overflow-hidden rounded-2xl bg-black shadow-lg">
+          <div className="mt-6">
             {canPlay ? (
-              <video
-                className="aspect-video w-full"
-                controls
-                playsInline
-                preload="metadata"
-                src={aula.videoUrl}
+              <AulaPlayer
+                aulaId={aula.id}
+                videoUrl={aula.videoUrl}
+                statusLabel={statusLabels[aula.status]}
+                initialCompleted={progress?.completed ?? false}
+                initialFavorite={progress?.favorite ?? false}
+                admin={isAdmin}
               />
             ) : (
-              <div className="flex aspect-video w-full items-center justify-center text-sm text-gray-400">
+              <div className="flex aspect-video w-full items-center justify-center overflow-hidden rounded-2xl bg-black text-sm text-gray-400 shadow-lg">
                 Vídeo indisponível ({statusLabels[aula.status]})
               </div>
             )}

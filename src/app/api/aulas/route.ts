@@ -85,5 +85,23 @@ export async function GET(request: Request) {
     orderBy: { createdAt: "desc" },
   });
 
-  return NextResponse.json({ aulas });
+  let progressMap = new Map<string, { completed: boolean; favorite: boolean }>();
+  if (user.role !== "ADMIN") {
+    const progress = await prisma.aulaProgress.findMany({
+      where: { userId: user.id, aulaId: { in: aulas.map((a) => a.id) } },
+      select: { aulaId: true, completed: true, favorite: true },
+    });
+    progressMap = new Map(progress.map((p) => [p.aulaId, p]));
+  }
+
+  const result = aulas.map((aula) => {
+    const p = progressMap.get(aula.id);
+    return {
+      ...aula,
+      completed: p?.completed ?? false,
+      favorite: p?.favorite ?? false,
+    };
+  });
+
+  return NextResponse.json({ aulas: result });
 }
