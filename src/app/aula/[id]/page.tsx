@@ -35,6 +35,17 @@ export default async function AulaPage({
 
   const canPlay = Boolean(aula.videoUrl) && (aula.status === "READY" || aula.status === "SYNCED");
 
+  if (canPlay && user.role !== "ADMIN") {
+    await prisma.aula.update({
+      where: { id },
+      data: { viewCount: { increment: 1 } },
+    });
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { lastAccessAt: new Date() },
+    });
+  }
+
   return (
     <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-8">
       <div className="animate-fade-up mb-4 flex items-center justify-between">

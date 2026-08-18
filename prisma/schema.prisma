@@ -48,6 +48,7 @@ model Aula {
   durationSec  Int?
   status       VideoStatus @default(READY)
   tags         String[]
+  viewCount    Int         @default(0)
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
 }
@@ -58,5 +59,6 @@ model User {
   email        String   @unique
   passwordHash String
   role         UserRole @default(ALUNO)
+  lastAccessAt DateTime?
   createdAt    DateTime @default(now())
 }
