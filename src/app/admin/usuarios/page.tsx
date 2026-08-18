@@ -25,6 +25,14 @@ export default function AdminUsersPage() {
   const [role, setRole] = useState<"ALUNO" | "ADMIN">("ALUNO");
   const [sending, setSending] = useState(false);
 
+  const [editing, setEditing] = useState<User | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [editRole, setEditRole] = useState<"ALUNO" | "ADMIN">("ALUNO");
+  const [editPassword, setEditPassword] = useState("");
+  const [editSending, setEditSending] = useState(false);
+  const [editError, setEditError] = useState("");
+
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     setError("");
@@ -92,6 +100,44 @@ export default function AdminUsersPage() {
       fetchUsers();
     } catch {
       window.alert("Falha de rede ao excluir o usuário.");
+    }
+  }
+
+  function openEdit(user: User) {
+    setEditing(user);
+    setEditName(user.name);
+    setEditEmail(user.email);
+    setEditRole(user.role);
+    setEditPassword("");
+    setEditError("");
+  }
+
+  async function handleUpdate(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editing) return;
+    setEditSending(true);
+    setEditError("");
+    try {
+      const res = await fetch(`/api/admin/users/${editing.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: editName,
+          email: editEmail,
+          role: editRole,
+          ...(editPassword ? { password: editPassword } : {}),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error ?? "Erro ao atualizar usuário.");
+      }
+      setEditing(null);
+      fetchUsers();
+    } catch (err) {
+      setEditError(err instanceof Error ? err.message : "Erro ao atualizar usuário.");
+    } finally {
+      setEditSending(false);
     }
   }
 
@@ -226,6 +272,12 @@ export default function AdminUsersPage() {
                   >
                     {user.role === "ADMIN" ? "Admin" : "Aluno"}
                   </span>
+                  <button
+                    onClick={() => openEdit(user)}
+                    className="rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-600 transition hover:bg-blue-100 active:scale-95"
+                  >
+                    Editar
+                  </button>
                   {user.role === "ALUNO" && (
                     <button
                       onClick={() => handleDelete(user)}
@@ -240,6 +292,97 @@ export default function AdminUsersPage() {
           )}
         </div>
       </div>
+
+      {editing && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+          onClick={() => !editSending && setEditing(null)}
+        >
+          <form
+            onSubmit={handleUpdate}
+            onClick={(e) => e.stopPropagation()}
+            className="animate-fade-up w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl shadow-blue-900/30"
+          >
+            <h2 className="text-sm font-bold tracking-wide text-gray-800 uppercase">
+              Editar usuário
+            </h2>
+            <p className="mt-1 text-xs text-gray-500">
+              Atualize as informações de {editing.name}.
+            </p>
+
+            <div className="mt-4 space-y-4">
+              <div>
+                <label className="mb-1.5 block text-sm font-semibold text-gray-700">Nome</label>
+                <input
+                  required
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200"
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-semibold text-gray-700">E-mail</label>
+                <input
+                  type="email"
+                  required
+                  value={editEmail}
+                  onChange={(e) => setEditEmail(e.target.value)}
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200"
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-semibold text-gray-700">Perfil</label>
+                <select
+                  value={editRole}
+                  onChange={(e) => setEditRole(e.target.value as "ALUNO" | "ADMIN")}
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200"
+                >
+                  <option value="ALUNO">Aluno</option>
+                  <option value="ADMIN">Administrador</option>
+                </select>
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-semibold text-gray-700">
+                  Nova senha{" "}
+                  <span className="font-normal text-gray-400">(opcional — só para trocar)</span>
+                </label>
+                <input
+                  type="password"
+                  value={editPassword}
+                  minLength={6}
+                  onChange={(e) => setEditPassword(e.target.value)}
+                  placeholder="deixe em branco para manter"
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200"
+                />
+              </div>
+            </div>
+
+            {editError && (
+              <p className="mt-4 rounded-xl bg-red-50 px-3 py-2.5 text-sm text-red-700">
+                {editError}
+              </p>
+            )}
+
+            <div className="mt-6 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setEditing(null)}
+                disabled={editSending}
+                className="rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-100 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={editSending}
+                className="rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-500/30 transition hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {editSending ? "Salvando…" : "Salvar alterações"}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </main>
   );
 }
