@@ -58,12 +58,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               >
                 Início
               </Link>
-              <Link
-                href="/#temas"
-                className="hidden rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-blue-50 hover:text-blue-700 sm:block"
-              >
-                Temas
-              </Link>
               <UserMenu />
             </div>
           </nav>
