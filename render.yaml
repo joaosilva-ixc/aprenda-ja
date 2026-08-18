@@ -1,0 +1,41 @@
+# Render Blueprint — deploy "Aprenda Já Academy" (Next.js + Prisma + Postgres)
+# Ver: https://render.com/docs/blueprint-spec
+#
+# Como usar:
+#   1. Crie um repositório público/privado apontado para este blueprint (dashboard -> Blueprint).
+#   2. Preencha GOOGLE_CLIENT_EMAIL, GOOGLE_PRIVATE_KEY e GOOGLE_DRIVE_FOLDER_ID (opcional).
+#   3. Após o 1º deploy, rode o seed dos temas: npx prisma db seed (na aba Shell/Logs do serviço).
+#
+# Obs: a pasta de vídeos fica no Disk persistente montado em /var/lib/data.
+
+services:
+  - type: web
+    name: aprenda-ja
+    runtime: node
+    repo: https://github.com/joaosilva-ixc/aprenda-ja
+    branch: main
+    plan: free
+    buildCommand: npx prisma generate && npx prisma migrate deploy && npm run build
+    startCommand: npm run start
+    healthCheckPath: /
+    disk:
+      name: videos
+      mountPath: /var/lib/data
+      sizeGB: 1
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: aprenda-db
+          property: connectionString
+      - key: UPLOAD_DIR
+        value: /var/lib/data
+      - key: GOOGLE_CLIENT_EMAIL
+        sync: false
+      - key: GOOGLE_PRIVATE_KEY
+        sync: false
+      - key: GOOGLE_DRIVE_FOLDER_ID
+        sync: false
+
+databases:
+  - name: aprenda-db
+    plan: free

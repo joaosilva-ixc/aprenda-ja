@@ -1,0 +1,102 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+export const metadata: Metadata = {
+  title: "Aprenda Já - Academy",
+  description:
+    "Plataforma de treinamentos do Opa: Configuração Geral, Usabilidade, PABX e Fluxo de Comunicação.",
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html
+      lang="pt-BR"
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+    >
+      <body className="flex min-h-full flex-col text-gray-900">
+        <header className="sticky top-0 z-50 border-b border-white/10 bg-white/70 backdrop-blur-xl">
+          <nav className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-3">
+            <Link href="/" className="group flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30 transition group-hover:scale-105">
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6 20.25h12M12 20.25V4m0 0-4.5 4.5M12 4l4.5 4.5"
+                  />
+                </svg>
+              </span>
+              <span className="flex flex-col leading-tight">
+                <span className="text-base font-bold tracking-tight">Aprenda Já</span>
+                <span className="text-xs font-medium text-gray-500">Academy</span>
+              </span>
+            </Link>
+
+            <div className="flex items-center gap-2">
+              <Link
+                href="/"
+                className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-blue-50 hover:text-blue-700"
+              >
+                Início
+              </Link>
+              <Link
+                href="/#temas"
+                className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-blue-50 hover:text-blue-700"
+              >
+                Temas
+              </Link>
+              <Link
+                href="/upload"
+                className="ml-2 inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-500/30 transition hover:from-blue-700 hover:to-indigo-700 hover:shadow-blue-500/50 active:scale-95"
+              >
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"
+                  />
+                </svg>
+                Enviar gravação
+              </Link>
+            </div>
+          </nav>
+        </header>
+
+        {children}
+
+        <footer className="mt-auto border-t border-white/10 bg-slate-900/40 py-8 backdrop-blur-sm">
+          <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-2 px-4 text-center">
+            <p className="text-sm font-semibold text-white">Aprenda Já · Academy</p>
+            <p className="text-xs text-blue-100/70">
+              Treinamentos Opa — Configuração Geral, Usabilidade, PABX e Fluxo de Comunicação.
+            </p>
+          </div>
+        </footer>
+      </body>
+    </html>
+  );
+}

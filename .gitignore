@@ -1,0 +1,20 @@
+node_modules
+# Keep environment variables out of version control
+.env
+
+/src/generated/prisma
+
+# Build and local runtime artifacts
+.next
+.next/**
+tsconfig.tsbuildinfo
+uploads
+uploads/
+
+# Agent/editor local config
+.agents
+.claude
+.windsurf
+skills-lock.json
+.vercel
+.env*

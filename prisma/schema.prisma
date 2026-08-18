@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ThemeSlug {
+  CONFIGURACAO_GERAL
+  USABILIDADE
+  PABX
+  FLUXO_COMUNICACAO
+}
+
+enum VideoStatus {
+  UPLOADING
+  READY
+  SYNCING
+  SYNCED
+  FAILED
+}
+
+enum UserRole {
+  ADMIN
+  ALUNO
+}
+
+model Theme {
+  id        String    @id @default(cuid())
+  slug      ThemeSlug @unique
+  name      String
+  icon      String
+  color     String
+  createdAt DateTime  @default(now())
+  aulas     Aula[]
+}
+
+model Aula {
+  id          String      @id @default(cuid())
+  title       String
+  description String
+  themeId     String
+  theme       Theme       @relation(fields: [themeId], references: [id], onDelete: Cascade)
+  videoPath   String      @unique
+  videoUrl    String?
+  driveFileId String?
+  driveLink   String?
+  durationSec Int?
+  status      VideoStatus @default(UPLOADING)
+  tags        String[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         UserRole @default(ALUNO)
+  createdAt    DateTime @default(now())
+}
