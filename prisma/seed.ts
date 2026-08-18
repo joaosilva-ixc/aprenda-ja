@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
+import * as bcrypt from "bcryptjs";
 import type { ThemeSlug } from "../src/generated/prisma/enums";
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
@@ -43,6 +44,25 @@ async function main() {
   }
 
   console.log("Temas criados:", await prisma.theme.count());
+
+  const adminEmail = process.env.ADMIN_EMAIL;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  if (adminEmail && adminPassword) {
+    const passwordHash = await bcrypt.hash(adminPassword, 10);
+    await prisma.user.upsert({
+      where: { email: adminEmail },
+      update: { passwordHash },
+      create: {
+        name: "Administrador",
+        email: adminEmail,
+        passwordHash,
+        role: "ADMIN",
+      },
+    });
+    console.log("Admin garantido para:", adminEmail);
+  } else {
+    console.warn("ADMIN_EMAIL/ADMIN_PASSWORD não definidos, admin não criado.");
+  }
 }
 
 main()

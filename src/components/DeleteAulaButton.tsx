@@ -34,7 +34,7 @@ export function DeleteAulaButton({
     e.stopPropagation();
     if (busy) return;
     if (
-      !window.confirm("Excluir esta aula? A gravação no Google Drive será mantida.")
+      !window.confirm("Excluir esta aula? O vídeo hospedado também será removido.")
     ) {
       return;
     }

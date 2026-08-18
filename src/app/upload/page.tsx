@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { upload } from "@vercel/blob/client";
 import { ThemeSlug } from "@/generated/prisma/enums";
 
 type Tema = {
@@ -11,85 +12,88 @@ type Tema = {
   name: string;
 };
 
-type DriveFile = {
-  id: string;
-  name: string;
-  mimeType: string | null;
-  webViewLink: string | null;
-  size?: string | null;
-  modifiedTime?: string | null;
-};
-
-type DriveFolder = {
-  id: string;
-  name: string;
-  files: DriveFile[];
-};
+function formatBytes(bytes: number) {
+  if (!bytes) return "";
+  const units = ["B", "KB", "MB", "GB"];
+  let value = bytes;
+  let unit = 0;
+  while (value >= 1024 && unit < units.length - 1) {
+    value /= 1024;
+    unit++;
+  }
+  return `${value.toFixed(1)} ${units[unit]}`;
+}
 
 export default function UploadPage() {
   const router = useRouter();
+  const inputRef = useRef<HTMLInputElement>(null);
   const [temas, setTemas] = useState<Tema[]>([]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [themeId, setThemeId] = useState("");
   const [tags, setTags] = useState("");
-  const [folders, setFolders] = useState<DriveFolder[]>([]);
-  const [selected, setSelected] = useState<DriveFile | null>(null);
-  const [manualLink, setManualLink] = useState("");
-  const [loadingFiles, setLoadingFiles] = useState(true);
-  const [listError, setListError] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [progress, setProgress] = useState(0);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
-  const [copied, setCopied] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
+    fetch("/api/auth/me")
+      .then((r) => r.json())
+      .then((data) => {
+        setAuthChecked(true);
+        if (!data.user) {
+          router.push("/login");
+          return;
+        }
+        if (data.user.role !== "ADMIN") {
+          router.push("/");
+          return;
+        }
+      })
+      .catch(() => {
+        setAuthChecked(true);
+        router.push("/login");
+      });
     fetch("/api/temas")
       .then((r) => r.json())
       .then((d) => setTemas(d.temas));
-    loadFiles();
-  }, []);
+  }, [router]);
 
-  async function loadFiles() {
-    setLoadingFiles(true);
-    setListError("");
-    try {
-      const res = await fetch("/api/drive/files");
-      const data = await res.json();
-      if (!res.ok) {
-        setListError(data.error ?? "Falha ao carregar gravações.");
-      } else {
-        setFolders(data.folders ?? []);
-        setSelected(null);
-      }
-    } catch {
-      setListError("Falha de rede ao carregar as gravações.");
-    } finally {
-      setLoadingFiles(false);
+  function pickFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0] ?? null;
+    setFile(f);
+    setError("");
+    setProgress(0);
+    if (f) {
+      const baseName = f.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").trim();
+      setTitle((t) => t || baseName);
     }
   }
-
-  async function copyLink(link: string) {
-    try {
-      await navigator.clipboard.writeText(link);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      setError("Não foi possível copiar o link automaticamente.");
-    }
-  }
-
-  const driveLink = selected?.webViewLink ?? manualLink.trim();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!driveLink) {
-      setError("Selecione uma gravação da pasta ou cole o link do Drive.");
+    if (!file) {
+      setError("Selecione um arquivo de vídeo.");
+      return;
+    }
+    if (!themeId) {
+      setError("Selecione o tema da aula.");
       return;
     }
     setSending(true);
     setError("");
+    setProgress(0);
 
     try {
+      const blobResult = await upload(`aulas/${file.name}`, file, {
+        access: "public",
+        handleUploadUrl: "/api/blob/upload",
+        contentType: file.type || "video/mp4",
+        onUploadProgress: ({ percentage }) => setProgress(percentage),
+      });
+
       const res = await fetch("/api/aulas", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -98,19 +102,31 @@ export default function UploadPage() {
           description,
           themeId,
           tags,
-          driveFileId: selected?.id ?? "",
-          driveLink,
+          videoUrl: blobResult.url,
+          blobPathname: blobResult.pathname,
         }),
       });
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error ?? "Erro ao enviar a gravação.");
+        throw new Error(data.error ?? "Erro ao salvar a aula.");
       }
       router.push("/");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao enviar a gravação.");
+      setError(
+        err instanceof Error && err.message
+          ? err.message
+          : "Erro ao enviar o vídeo.",
+      );
       setSending(false);
     }
+  }
+
+  if (!authChecked) {
+    return (
+      <main className="mx-auto flex w-full max-w-2xl flex-1 items-center justify-center px-4">
+        <div className="h-24 w-full max-w-sm animate-pulse rounded-2xl bg-white/40" />
+      </main>
+    );
   }
 
   return (
@@ -153,6 +169,24 @@ export default function UploadPage() {
 
         <div>
           <label className="mb-1.5 block text-sm font-semibold text-gray-700">
+            Arquivo de vídeo
+          </label>
+          <input
+            ref={inputRef}
+            type="file"
+            accept="video/*"
+            onChange={pickFile}
+            className="block w-full cursor-pointer rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-600 outline-none transition file:mr-3 file:border-0 file:bg-blue-600 file:px-4 file:py-2.5 file:text-sm file:font-semibold file:text-white hover:file:bg-blue-700"
+          />
+          {file && (
+            <p className="mt-1.5 text-xs text-gray-500">
+              {file.name} · {formatBytes(file.size)}
+            </p>
+          )}
+        </div>
+
+        <div>
+          <label className="mb-1.5 block text-sm font-semibold text-gray-700">
             Título da aula
           </label>
           <input
@@ -187,139 +221,20 @@ export default function UploadPage() {
           />
         </div>
 
-        <div>
-          <div className="mb-1.5 flex items-center justify-between">
-            <label className="block text-sm font-semibold text-gray-700">
-              Gravação <span className="font-normal text-gray-400">(pasta no Google Drive)</span>
-            </label>
-            <button
-              type="button"
-              onClick={loadFiles}
-              disabled={loadingFiles}
-              className="text-xs font-semibold text-blue-600 transition hover:text-blue-700 disabled:opacity-50"
-            >
-              {loadingFiles ? "Carregando…" : "Atualizar lista"}
-            </button>
+        {sending && (
+          <div>
+            <div className="mb-1.5 flex items-center justify-between text-xs text-gray-500">
+              <span>Enviando vídeo…</span>
+              <span>{Math.round(progress)}%</span>
+            </div>
+            <div className="h-2.5 w-full overflow-hidden rounded-full bg-gray-100">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 transition-all duration-300"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
           </div>
-
-          {loadingFiles ? (
-            <div className="flex h-32 flex-col items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-gray-50 text-sm text-gray-500">
-              <svg className="h-6 w-6 animate-spin text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-              </svg>
-              Carregando gravações do Drive…
-            </div>
-          ) : listError ? (
-            <div className="flex flex-col items-center gap-3 rounded-2xl border border-red-200 bg-red-50 px-6 py-8 text-center">
-              <p className="text-sm text-red-700">{listError}</p>
-              <button
-                type="button"
-                onClick={loadFiles}
-                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 active:scale-95"
-              >
-                Tentar novamente
-              </button>
-            </div>
-          ) : folders.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-6 py-8 text-center text-sm text-gray-500">
-              Nenhuma gravação encontrada na pasta do Drive.
-            </div>
-          ) : (
-            <div className="max-h-80 space-y-4 overflow-y-auto rounded-2xl border border-gray-200 bg-gray-50 p-3">
-              {folders
-                .filter((f) => f.files.length > 0)
-                .map((folder) => (
-                  <div key={folder.id}>
-                    <p className="mb-1.5 flex items-center gap-1.5 text-xs font-bold tracking-wide text-gray-500 uppercase">
-                      <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" />
-                      </svg>
-                      {folder.name}
-                    </p>
-                    <div className="space-y-2">
-                      {folder.files.map((f) => (
-                        <label
-                          key={f.id}
-                          className={`flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2.5 transition ${
-                            selected?.id === f.id
-                              ? "border-blue-400 bg-blue-50 ring-2 ring-blue-200"
-                              : "border-transparent bg-white hover:border-blue-200 hover:bg-blue-50/40"
-                          }`}
-                        >
-                          <input
-                            type="radio"
-                            name="gravação"
-                            className="flex h-4 w-4 shrink-0 accent-blue-600"
-                            checked={selected?.id === f.id}
-                            onChange={() => {
-                              setSelected(f);
-                              setManualLink("");
-                              const tema = temas.find((t) => t.name === folder.name);
-                              if (tema) setThemeId(tema.id);
-                            }}
-                          />
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-semibold text-gray-800">{f.name}</p>
-                            <p className="truncate text-xs text-gray-500">
-                              {f.mimeType === "application/vnd.google-apps.video" ? "Vídeo do Drive" : f.mimeType}
-                              {f.size ? ` · ${(Number(f.size) / (1024 * 1024)).toFixed(1)} MB` : ""}
-                            </p>
-                          </div>
-                          {f.webViewLink && (
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                copyLink(f.webViewLink!);
-                              }}
-                              className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-blue-700 active:scale-95"
-                            >
-                              Copiar link
-                            </button>
-                          )}
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              {folders.every((f) => f.files.length === 0) && (
-                <p className="px-3 py-6 text-center text-sm text-gray-500">
-                  Nenhuma gravação encontrada nas subpastas.
-                </p>
-              )}
-            </div>
-          )}
-        </div>
-
-        <div>
-          <label className="mb-1.5 block text-sm font-semibold text-gray-700">
-            Link da gravação
-          </label>
-          <input
-            value={driveLink}
-            readOnly={!!selected}
-            onChange={(e) => {
-              setManualLink(e.target.value);
-              setSelected(null);
-            }}
-            placeholder="https://drive.google.com/…"
-            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200 read-only:bg-white"
-          />
-          <p className="mt-1.5 text-xs text-gray-400">
-            Selecione uma gravação acima (o tema é preenchido automaticamente) ou cole o link copiado do Drive.
-          </p>
-          {driveLink && (
-            <div className="mt-2 flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => copyLink(driveLink)}
-                className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-emerald-700 active:scale-95"
-              >
-                {copied ? "Link copiado!" : "Copiar link"}
-              </button>
-            </div>
-          )}
-        </div>
+        )}
 
         {error && (
           <p className="rounded-xl bg-red-50 px-3 py-2.5 text-sm text-red-700">{error}</p>
@@ -327,7 +242,7 @@ export default function UploadPage() {
 
         <button
           type="submit"
-          disabled={sending}
+          disabled={sending || !file}
           className="w-full rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-blue-500/30 transition hover:from-blue-700 hover:to-indigo-700 hover:shadow-blue-500/50 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
         >
           {sending ? "Enviando…" : "Enviar gravação"}

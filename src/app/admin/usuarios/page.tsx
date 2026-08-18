@@ -1,0 +1,245 @@
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+
+type User = {
+  id: string;
+  name: string;
+  email: string;
+  role: "ADMIN" | "ALUNO";
+  createdAt: string;
+};
+
+export default function AdminUsersPage() {
+  const router = useRouter();
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [q, setQ] = useState("");
+
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState<"ALUNO" | "ADMIN">("ALUNO");
+  const [sending, setSending] = useState(false);
+
+  const fetchUsers = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const params = new URLSearchParams();
+      if (q) params.set("q", q);
+      const res = await fetch(`/api/admin/users?${params.toString()}`);
+      const data = await res.json();
+      if (!res.ok) {
+        if (res.status === 401 || res.status === 403) {
+          router.push("/login");
+          return;
+        }
+        throw new Error(data.error ?? "Erro ao carregar usuários.");
+      }
+      setUsers(data.users);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao carregar usuários.");
+    } finally {
+      setLoading(false);
+    }
+  }, [q, router]);
+
+  useEffect(() => {
+    const t = setTimeout(fetchUsers, 200);
+    return () => clearTimeout(t);
+  }, [fetchUsers]);
+
+  async function handleCreate(e: React.FormEvent) {
+    e.preventDefault();
+    setSending(true);
+    setError("");
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password, role }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error ?? "Erro ao criar usuário.");
+      }
+      setName("");
+      setEmail("");
+      setPassword("");
+      setRole("ALUNO");
+      fetchUsers();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao criar usuário.");
+    } finally {
+      setSending(false);
+    }
+  }
+
+  async function handleDelete(user: User) {
+    if (user.role === "ADMIN") return;
+    if (!window.confirm(`Excluir o aluno ${user.name}?`)) return;
+    try {
+      const res = await fetch(`/api/admin/users/${user.id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        window.alert(data?.error ?? "Erro ao excluir usuário.");
+        return;
+      }
+      fetchUsers();
+    } catch {
+      window.alert("Falha de rede ao excluir o usuário.");
+    }
+  }
+
+  return (
+    <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8">
+      <div className="animate-fade-up mb-6 flex items-center gap-3">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-sm font-medium text-white backdrop-blur transition hover:bg-white/20"
+        >
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+          </svg>
+          Voltar
+        </Link>
+        <div>
+          <h1 className="text-2xl font-extrabold tracking-tight text-white drop-shadow">
+            Gerenciar alunos
+          </h1>
+          <p className="text-xs font-medium text-blue-100/80">
+            Crie contas de acesso para alunos e administradores.
+          </p>
+        </div>
+      </div>
+
+      <form
+        onSubmit={handleCreate}
+        className="animate-fade-up mb-6 space-y-4 rounded-3xl bg-white p-6 shadow-2xl shadow-blue-900/20 [animation-delay:100ms]"
+      >
+        <h2 className="text-sm font-bold tracking-wide text-gray-800 uppercase">
+          Novo usuário
+        </h2>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label className="mb-1.5 block text-sm font-semibold text-gray-700">Nome</label>
+            <input
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Ex.: Maria Souza"
+              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200"
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-sm font-semibold text-gray-700">E-mail</label>
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="maria@exemplo.com"
+              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200"
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-sm font-semibold text-gray-700">Senha</label>
+            <input
+              type="password"
+              required
+              minLength={6}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="mínimo 6 caracteres"
+              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200"
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-sm font-semibold text-gray-700">Perfil</label>
+            <select
+              value={role}
+              onChange={(e) => setRole(e.target.value as "ALUNO" | "ADMIN")}
+              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200"
+            >
+              <option value="ALUNO">Aluno</option>
+              <option value="ADMIN">Administrador</option>
+            </select>
+          </div>
+        </div>
+
+        {error && (
+          <p className="rounded-xl bg-red-50 px-3 py-2.5 text-sm text-red-700">{error}</p>
+        )}
+
+        <button
+          type="submit"
+          disabled={sending}
+          className="w-full rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-blue-500/30 transition hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+        >
+          {sending ? "Criando…" : "Criar usuário"}
+        </button>
+      </form>
+
+      <div className="animate-fade-up [animation-delay:150ms]">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-sm font-bold tracking-wide text-white uppercase">
+            Usuários ({users.length})
+          </h2>
+          <input
+            type="search"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Buscar…"
+            className="w-44 rounded-xl border border-white/20 bg-white/10 px-3 py-1.5 text-sm text-white outline-none transition placeholder:text-blue-100/50 focus:border-blue-300 focus:bg-white/15"
+          />
+        </div>
+
+        <div className="space-y-2">
+          {loading ? (
+            <div className="h-24 animate-pulse rounded-2xl bg-white/40" />
+          ) : users.length === 0 ? (
+            <p className="rounded-2xl border border-dashed border-white/40 bg-white/60 p-8 text-center text-sm text-gray-600">
+              Nenhum usuário encontrado.
+            </p>
+          ) : (
+            users.map((user) => (
+              <div
+                key={user.id}
+                className="flex items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3 shadow-lg shadow-blue-900/10"
+              >
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-bold text-gray-900">{user.name}</p>
+                  <p className="truncate text-xs text-gray-500">{user.email}</p>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <span
+                    className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${
+                      user.role === "ADMIN"
+                        ? "bg-indigo-100 text-indigo-700"
+                        : "bg-emerald-100 text-emerald-700"
+                    }`}
+                  >
+                    {user.role === "ADMIN" ? "Admin" : "Aluno"}
+                  </span>
+                  {user.role === "ALUNO" && (
+                    <button
+                      onClick={() => handleDelete(user)}
+                      className="rounded-lg bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-100 active:scale-95"
+                    >
+                      Excluir
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </main>
+  );
+}

@@ -1,12 +1,19 @@
 import { NextResponse } from "next/server";
-import { randomUUID } from "node:crypto";
 import { prisma } from "@/lib/prisma";
-import { extractDriveFileId } from "@/lib/drive";
-import type { VideoStatus } from "@/generated/prisma/enums";
+import { requireAdmin, getSessionUser, AuthError } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
+  try {
+    await requireAdmin();
+  } catch (err) {
+    if (err instanceof AuthError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
+    return NextResponse.json({ error: "Erro interno" }, { status: 500 });
+  }
+
   const body = await request.json().catch(() => null);
   if (!body) {
     return NextResponse.json({ error: "Corpo inválido" }, { status: 400 });
@@ -16,23 +23,19 @@ export async function POST(request: Request) {
   const description = String(body.description ?? "").trim();
   const themeId = String(body.themeId ?? "");
   const tagsRaw = String(body.tags ?? "");
-  const driveLink = String(body.driveLink ?? "").trim();
-  let driveFileId = String(body.driveFileId ?? "").trim();
+  const videoUrl = String(body.videoUrl ?? "").trim();
+  const blobPathname = String(body.blobPathname ?? "").trim() || null;
 
   if (!title || !themeId) {
     return NextResponse.json({ error: "Título e tema são obrigatórios" }, { status: 400 });
   }
-  if (!driveLink) {
-    return NextResponse.json({ error: "O link da gravação é obrigatório" }, { status: 400 });
+  if (!videoUrl) {
+    return NextResponse.json({ error: "É necessário enviar o vídeo" }, { status: 400 });
   }
 
   const theme = await prisma.theme.findUnique({ where: { id: themeId } });
   if (!theme) {
     return NextResponse.json({ error: "Tema não encontrado" }, { status: 400 });
-  }
-
-  if (!driveFileId) {
-    driveFileId = extractDriveFileId(driveLink) ?? "";
   }
 
   const tags = tagsRaw
@@ -45,11 +48,9 @@ export async function POST(request: Request) {
       title,
       description,
       themeId,
-      videoPath: driveFileId || `drive-${randomUUID()}`,
-      videoUrl: driveLink,
-      driveFileId: driveFileId || null,
-      driveLink,
-      status: "READY" as VideoStatus,
+      videoUrl,
+      blobPathname,
+      status: "READY",
       tags,
     },
   });
@@ -58,6 +59,11 @@ export async function POST(request: Request) {
 }
 
 export async function GET(request: Request) {
+  const user = await getSessionUser();
+  if (!user) {
+    return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
+  }
+
   const { searchParams } = new URL(request.url);
   const q = searchParams.get("q") ?? "";
   const themeId = searchParams.get("themeId") ?? undefined;

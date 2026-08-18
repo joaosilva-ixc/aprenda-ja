@@ -38,20 +38,18 @@ model Theme {
 }
 
 model Aula {
-  id          String      @id @default(cuid())
-  title       String
-  description String
-  themeId     String
-  theme       Theme       @relation(fields: [themeId], references: [id], onDelete: Cascade)
-  videoPath   String      @unique
-  videoUrl    String?
-  driveFileId String?
-  driveLink   String?
-  durationSec Int?
-  status      VideoStatus @default(UPLOADING)
-  tags        String[]
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id           String      @id @default(cuid())
+  title        String
+  description  String
+  themeId      String
+  theme        Theme       @relation(fields: [themeId], references: [id], onDelete: Cascade)
+  videoUrl     String
+  blobPathname String?     @unique
+  durationSec  Int?
+  status       VideoStatus @default(READY)
+  tags         String[]
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
 }
 
 model User {

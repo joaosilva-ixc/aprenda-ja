@@ -1,6 +1,7 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { getSessionUser } from "@/lib/auth";
 import { DeleteAulaButton } from "@/components/DeleteAulaButton";
 
 export const runtime = "nodejs";
@@ -19,6 +20,11 @@ export default async function AulaPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const user = await getSessionUser();
+  if (!user) redirect("/login");
+
+  const isAdmin = user.role === "ADMIN";
+
   const { id } = await params;
   const aula = await prisma.aula.findUnique({
     where: { id },
@@ -27,10 +33,7 @@ export default async function AulaPage({
 
   if (!aula) notFound();
 
-  const canPlay = Boolean(aula.driveLink || aula.videoUrl) && (aula.status === "READY" || aula.status === "SYNCED");
-  const driveEmbed = aula.driveFileId
-    ? `https://drive.google.com/file/d/${aula.driveFileId}/preview`
-    : null;
+  const canPlay = Boolean(aula.videoUrl) && (aula.status === "READY" || aula.status === "SYNCED");
 
   return (
     <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-8">
@@ -44,7 +47,7 @@ export default async function AulaPage({
           </svg>
           Voltar
         </Link>
-        <DeleteAulaButton aulaId={aula.id} size="full" />
+        {isAdmin && <DeleteAulaButton aulaId={aula.id} size="full" />}
       </div>
 
       <div className="animate-fade-up overflow-hidden rounded-3xl bg-white shadow-2xl shadow-blue-900/20 [animation-delay:100ms]">
@@ -89,45 +92,19 @@ export default async function AulaPage({
 
           <div className="mt-6 overflow-hidden rounded-2xl bg-black shadow-lg">
             {canPlay ? (
-              driveEmbed ? (
-                <iframe
-                  className="aspect-video w-full"
-                  src={driveEmbed}
-                  title={aula.title}
-                  allow="autoplay; encrypted-media; picture-in-picture"
-                  allowFullScreen
-                />
-              ) : (
-                <video
-                  className="aspect-video w-full"
-                  controls
-                  playsInline
-                  preload="metadata"
-                  src={aula.videoUrl!}
-                />
-              )
+              <video
+                className="aspect-video w-full"
+                controls
+                playsInline
+                preload="metadata"
+                src={aula.videoUrl}
+              />
             ) : (
               <div className="flex aspect-video w-full items-center justify-center text-sm text-gray-400">
                 Vídeo indisponível ({statusLabels[aula.status]})
               </div>
             )}
           </div>
-
-          {aula.driveLink && (
-            <p className="mt-4 flex flex-wrap items-center gap-3 text-sm text-gray-600">
-              <a
-                href={aula.driveLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 font-semibold text-blue-600 hover:text-blue-700"
-              >
-                abrir no Google Drive
-                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-                </svg>
-              </a>
-            </p>
-          )}
         </div>
       </div>
     </main>

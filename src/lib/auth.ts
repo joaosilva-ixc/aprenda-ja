@@ -1,0 +1,102 @@
+import "server-only";
+import { cookies } from "next/headers";
+import { SignJWT, jwtVerify } from "jose";
+import * as bcrypt from "bcryptjs";
+import { prisma } from "@/lib/prisma";
+import type { UserRole } from "@/generated/prisma/enums";
+
+const SESSION_COOKIE = "aj_session";
+const SESSION_DURATION = "30d";
+const MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
+
+function getSecret() {
+  const secret = process.env.AUTH_SECRET;
+  if (!secret) {
+    throw new Error("AUTH_SECRET não definido no ambiente.");
+  }
+  return new TextEncoder().encode(secret);
+}
+
+export function hashPassword(password: string) {
+  return bcrypt.hash(password, 10);
+}
+
+export function verifyPassword(password: string, hash: string) {
+  return bcrypt.compare(password, hash);
+}
+
+export async function createSession(user: {
+  id: string;
+  role: UserRole;
+}) {
+  const token = await new SignJWT({
+    role: user.role,
+  })
+    .setProtectedHeader({ alg: "HS256" })
+    .setSubject(user.id)
+    .setIssuedAt()
+    .setExpirationTime(SESSION_DURATION)
+    .sign(getSecret());
+
+  const cookieStore = await cookies();
+  cookieStore.set(SESSION_COOKIE, token, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: MAX_AGE_SECONDS,
+  });
+}
+
+export async function destroySession() {
+  const cookieStore = await cookies();
+  cookieStore.set(SESSION_COOKIE, "", {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 0,
+  });
+}
+
+export async function getSessionUser() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE)?.value;
+  if (!token) return null;
+
+  try {
+    const { payload } = await jwtVerify(token, getSecret());
+    if (!payload.sub) return null;
+    const user = await prisma.user.findUnique({ where: { id: payload.sub } });
+    return user;
+  } catch {
+    return null;
+  }
+}
+
+export async function requireUser() {
+  const user = await getSessionUser();
+  if (!user) {
+    throw new AuthError("Não autenticado", 401);
+  }
+  return user;
+}
+
+export async function requireAdmin() {
+  const user = await getSessionUser();
+  if (!user) {
+    throw new AuthError("Não autenticado", 401);
+  }
+  if (user.role !== "ADMIN") {
+    throw new AuthError("Acesso restrito a administradores", 403);
+  }
+  return user;
+}
+
+export class AuthError extends Error {
+  status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.status = status;
+  }
+}

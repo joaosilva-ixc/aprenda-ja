@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ThemeSlug } from "@/generated/prisma/enums";
 import { DeleteAulaButton } from "@/components/DeleteAulaButton";
 
@@ -18,9 +19,7 @@ type Aula = {
   id: string;
   title: string;
   description: string;
-  videoPath: string;
-  videoUrl: string | null;
-  driveLink: string | null;
+  videoUrl: string;
   status: string;
   tags: string[];
   createdAt: string;
@@ -46,11 +45,31 @@ const playIcon = (
 );
 
 export default function Home() {
+  const router = useRouter();
   const [temas, setTemas] = useState<Tema[]>([]);
   const [aulas, setAulas] = useState<Aula[]>([]);
+  const [user, setUser] = useState<{ role: string } | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
   const [q, setQ] = useState("");
   const [themeId, setThemeId] = useState("");
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((r) => r.json())
+      .then((data) => {
+        setAuthChecked(true);
+        if (!data.user) {
+          router.push("/login");
+          return;
+        }
+        setUser(data.user);
+      })
+      .catch(() => {
+        setAuthChecked(true);
+        router.push("/login");
+      });
+  }, [router]);
 
   const fetchAulas = useCallback(async () => {
     const params = new URLSearchParams();
@@ -90,6 +109,16 @@ export default function Home() {
       .filter((g) => g.aulas.length > 0);
   }, [temas, aulas, themeId]);
 
+  if (!authChecked) {
+    return (
+      <main className="mx-auto flex w-full max-w-6xl flex-1 items-center justify-center px-4">
+        <div className="h-24 w-full max-w-md animate-pulse rounded-2xl bg-white/40" />
+      </main>
+    );
+  }
+
+  const isAdmin = user?.role === "ADMIN";
+
   return (
     <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-16">
       {/* Hero */}
@@ -115,12 +144,14 @@ export default function Home() {
           >
             Explorar aulas
           </a>
-          <Link
-            href="/upload"
-            className="rounded-xl border border-white/30 bg-white/10 px-6 py-3 text-sm font-bold text-white backdrop-blur transition hover:-translate-y-0.5 hover:bg-white/20 active:scale-95"
-          >
-            Enviar gravação
-          </Link>
+          {isAdmin && (
+            <Link
+              href="/upload"
+              className="rounded-xl border border-white/30 bg-white/10 px-6 py-3 text-sm font-bold text-white backdrop-blur transition hover:-translate-y-0.5 hover:bg-white/20 active:scale-95"
+            >
+              Enviar gravação
+            </Link>
+          )}
         </div>
 
         <div className="mx-auto mt-12 grid max-w-2xl grid-cols-3 gap-4">
@@ -265,6 +296,7 @@ export default function Home() {
                       key={aula.id}
                       aula={aula}
                       statusLabels={statusLabels}
+                      isAdmin={isAdmin}
                       delay={100 + idx * 40 + i * 60}
                     />
                   ))}
@@ -281,10 +313,12 @@ export default function Home() {
 function AulaCard({
   aula,
   statusLabels,
+  isAdmin,
   delay,
 }: {
   aula: Aula;
   statusLabels: Record<string, string>;
+  isAdmin: boolean;
   delay: number;
 }) {
   const canPlay = aula.status === "READY" || aula.status === "SYNCED";
@@ -328,7 +362,7 @@ function AulaCard({
         <span className="absolute bottom-3 left-3 flex items-center gap-1.5 rounded-full bg-black/40 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur">
           {aula.theme.name}
         </span>
-        <DeleteAulaButton aulaId={aula.id} />
+        {isAdmin && <DeleteAulaButton aulaId={aula.id} />}
       </div>
 
       {/* Corpo */}
