@@ -21,9 +21,13 @@ export default function AdminUsersPage() {
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [role, setRole] = useState<"ALUNO" | "ADMIN">("ALUNO");
   const [sending, setSending] = useState(false);
+  const [createdUser, setCreatedUser] = useState<{
+    name: string;
+    email: string;
+    temporaryPassword: string;
+  } | null>(null);
 
   const [editing, setEditing] = useState<User | null>(null);
   const [editName, setEditName] = useState("");
@@ -65,25 +69,40 @@ export default function AdminUsersPage() {
     e.preventDefault();
     setSending(true);
     setError("");
+    setCreatedUser(null);
     try {
       const res = await fetch("/api/admin/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, role }),
+        body: JSON.stringify({ name, email, role }),
       });
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.error ?? "Erro ao criar usuário.");
       }
+      setCreatedUser({
+        name: data.user.name,
+        email: data.user.email,
+        temporaryPassword: data.temporaryPassword,
+      });
       setName("");
       setEmail("");
-      setPassword("");
       setRole("ALUNO");
       fetchUsers();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao criar usuário.");
     } finally {
       setSending(false);
+    }
+  }
+
+  async function copyPassword() {
+    if (!createdUser) return;
+    try {
+      await navigator.clipboard.writeText(createdUser.temporaryPassword);
+      window.alert("Senha temporária copiada para a área de transferência.");
+    } catch {
+      window.alert("Não foi possível copiar. Anote a senha manualmente.");
     }
   }
 
@@ -194,18 +213,6 @@ export default function AdminUsersPage() {
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-semibold text-gray-700">Senha</label>
-            <input
-              type="password"
-              required
-              minLength={6}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="mínimo 6 caracteres"
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200"
-            />
-          </div>
-          <div>
             <label className="mb-1.5 block text-sm font-semibold text-gray-700">Perfil</label>
             <select
               value={role}
@@ -217,6 +224,33 @@ export default function AdminUsersPage() {
             </select>
           </div>
         </div>
+
+        {createdUser && (
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+            <p className="text-sm font-bold text-emerald-800">
+              Usuário criado com sucesso!
+            </p>
+            <p className="mt-1 text-xs text-emerald-700">
+              {createdUser.name} · {createdUser.email}
+            </p>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <code className="rounded-lg bg-white px-3 py-1.5 font-mono text-sm font-bold text-gray-900 shadow-sm">
+                {createdUser.temporaryPassword}
+              </code>
+              <button
+                type="button"
+                onClick={copyPassword}
+                className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-700 active:scale-95"
+              >
+                Copiar senha
+              </button>
+            </div>
+            <p className="mt-2 text-xs text-emerald-700">
+              Senha temporária exibida apenas uma vez. No primeiro login, o usuário será
+              obrigado a definir uma nova senha.
+            </p>
+          </div>
+        )}
 
         {error && (
           <p className="rounded-xl bg-red-50 px-3 py-2.5 text-sm text-red-700">{error}</p>

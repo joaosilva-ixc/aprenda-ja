@@ -9,6 +9,12 @@ export async function GET() {
     return NextResponse.json({ user: null }, { status: 401 });
   }
   return NextResponse.json({
-    user: { id: user.id, name: user.name, email: user.email, role: user.role },
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      mustChangePassword: user.mustChangePassword,
+    },
   });
 }

@@ -2,12 +2,23 @@ import "server-only";
 import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
 import * as bcrypt from "bcryptjs";
+import { randomInt } from "crypto";
 import { prisma } from "@/lib/prisma";
 import type { UserRole } from "@/generated/prisma/enums";
 
 const SESSION_COOKIE = "aj_session";
 const SESSION_DURATION = "30d";
 const MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
+
+const TEMP_PASSWORD_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+
+export function generateTemporaryPassword(length = 10) {
+  let password = "";
+  for (let i = 0; i < length; i++) {
+    password += TEMP_PASSWORD_ALPHABET[randomInt(TEMP_PASSWORD_ALPHABET.length)];
+  }
+  return password;
+}
 
 function getSecret() {
   const secret = process.env.AUTH_SECRET;

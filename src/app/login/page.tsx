@@ -26,7 +26,11 @@ export default function LoginPage() {
       if (!res.ok) {
         throw new Error(data.error ?? "Erro ao entrar.");
       }
-      router.push("/");
+      if (data.user?.mustChangePassword) {
+        router.push("/trocar-senha");
+      } else {
+        router.push("/");
+      }
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao entrar.");

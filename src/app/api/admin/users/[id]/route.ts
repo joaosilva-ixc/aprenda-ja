@@ -80,7 +80,9 @@ export async function PATCH(
       ...(name !== undefined ? { name } : {}),
       ...(email !== undefined ? { email } : {}),
       ...(role !== undefined ? { role } : {}),
-      ...(password ? { passwordHash: await hashPassword(password) } : {}),
+      ...(password
+        ? { passwordHash: await hashPassword(password), mustChangePassword: true }
+        : {}),
     },
   });
 

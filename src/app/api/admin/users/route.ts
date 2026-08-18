@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin, hashPassword, AuthError } from "@/lib/auth";
+import {
+  requireAdmin,
+  hashPassword,
+  generateTemporaryPassword,
+  AuthError,
+} from "@/lib/auth";
 
 export const runtime = "nodejs";
 
@@ -51,18 +56,11 @@ export async function POST(request: Request) {
 
   const name = String(body.name ?? "").trim();
   const email = String(body.email ?? "").trim().toLowerCase();
-  const password = String(body.password ?? "");
   const role = String(body.role ?? "ALUNO") === "ADMIN" ? "ADMIN" : "ALUNO";
 
-  if (!name || !email || !password) {
+  if (!name || !email) {
     return NextResponse.json(
-      { error: "Nome, e-mail e senha são obrigatórios" },
-      { status: 400 },
-    );
-  }
-  if (password.length < 6) {
-    return NextResponse.json(
-      { error: "A senha deve ter pelo menos 6 caracteres" },
+      { error: "Nome e e-mail são obrigatórios" },
       { status: 400 },
     );
   }
@@ -75,9 +73,10 @@ export async function POST(request: Request) {
     );
   }
 
-  const passwordHash = await hashPassword(password);
+  const temporaryPassword = generateTemporaryPassword();
+  const passwordHash = await hashPassword(temporaryPassword);
   const user = await prisma.user.create({
-    data: { name, email, passwordHash, role },
+    data: { name, email, passwordHash, role, mustChangePassword: true },
   });
 
   return NextResponse.json(
@@ -89,6 +88,7 @@ export async function POST(request: Request) {
         role: user.role,
         createdAt: user.createdAt,
       },
+      temporaryPassword,
     },
     { status: 201 },
   );
