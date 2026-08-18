@@ -48,18 +48,21 @@ async function main() {
   const adminEmail = process.env.ADMIN_EMAIL;
   const adminPassword = process.env.ADMIN_PASSWORD;
   if (adminEmail && adminPassword) {
-    const passwordHash = await bcrypt.hash(adminPassword, 10);
-    await prisma.user.upsert({
-      where: { email: adminEmail },
-      update: { passwordHash },
-      create: {
-        name: "Administrador",
-        email: adminEmail,
-        passwordHash,
-        role: "ADMIN",
-      },
-    });
-    console.log("Admin garantido para:", adminEmail);
+    const existing = await prisma.user.findUnique({ where: { email: adminEmail } });
+    if (existing) {
+      console.log("Admin já existe para:", adminEmail);
+    } else {
+      const passwordHash = await bcrypt.hash(adminPassword, 10);
+      await prisma.user.create({
+        data: {
+          name: "Administrador",
+          email: adminEmail,
+          passwordHash,
+          role: "ADMIN",
+        },
+      });
+      console.log("Admin criado para:", adminEmail);
+    }
   } else {
     console.warn("ADMIN_EMAIL/ADMIN_PASSWORD não definidos, admin não criado.");
   }
