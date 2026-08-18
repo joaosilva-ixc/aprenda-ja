@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 type User = {
   id: string;
@@ -12,7 +12,6 @@ type User = {
 };
 
 export function UserMenu() {
-  const router = useRouter();
   const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -110,8 +109,7 @@ export function UserMenu() {
         onClick={async () => {
           await fetch("/api/auth/logout", { method: "POST" });
           setUser(null);
-          router.push("/login");
-          router.refresh();
+          window.location.href = "/login";
         }}
         title="Sair"
         aria-label="Sair"

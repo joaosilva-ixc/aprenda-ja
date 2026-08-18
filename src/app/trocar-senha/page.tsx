@@ -52,7 +52,9 @@ export default function ChangePasswordPage() {
         throw new Error(data.error ?? "Erro ao trocar a senha.");
       }
       setSuccess(true);
-      setTimeout(() => router.push("/"), 1200);
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 1200);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao trocar a senha.");
       setSending(false);

@@ -2,10 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [sending, setSending] = useState(false);
@@ -26,12 +24,7 @@ export default function LoginPage() {
       if (!res.ok) {
         throw new Error(data.error ?? "Erro ao entrar.");
       }
-      if (data.user?.mustChangePassword) {
-        router.push("/trocar-senha");
-      } else {
-        router.push("/");
-      }
-      router.refresh();
+      window.location.href = data.user?.mustChangePassword ? "/trocar-senha" : "/";
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao entrar.");
       setSending(false);
