@@ -52,16 +52,6 @@ export function UserMenu() {
 
   return (
     <div className="flex items-center gap-2">
-      <div className="hidden flex-col items-end leading-tight sm:flex">
-        <span className="max-w-[180px] truncate text-sm font-bold text-gray-800">{user.name}</span>
-        <span
-          className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-            isAdmin ? "bg-indigo-100 text-indigo-700" : "bg-emerald-100 text-emerald-700"
-          }`}
-        >
-          {isAdmin ? "Admin" : "Aluno"}
-        </span>
-      </div>
       <Link
         href="/trocar-senha"
         className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-blue-50 hover:text-blue-700"
@@ -105,6 +95,16 @@ export function UserMenu() {
           </Link>
         </>
       )}
+      <div className="hidden flex-col items-end leading-tight sm:flex">
+        <span className="max-w-[180px] truncate text-sm font-bold text-gray-800">{user.name}</span>
+        <span
+          className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+            isAdmin ? "bg-indigo-100 text-indigo-700" : "bg-emerald-100 text-emerald-700"
+          }`}
+        >
+          {isAdmin ? "Admin" : "Aluno"}
+        </span>
+      </div>
       <button
         onClick={async () => {
           await fetch("/api/auth/logout", { method: "POST" });
