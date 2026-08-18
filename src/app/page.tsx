@@ -144,14 +144,6 @@ export default function Home() {
           >
             Explorar aulas
           </a>
-          {isAdmin && (
-            <Link
-              href="/upload"
-              className="rounded-xl border border-white/30 bg-white/10 px-6 py-3 text-sm font-bold text-white backdrop-blur transition hover:-translate-y-0.5 hover:bg-white/20 active:scale-95"
-            >
-              Enviar gravação
-            </Link>
-          )}
         </div>
 
         <div className="mx-auto mt-12 grid max-w-2xl grid-cols-3 gap-4">
