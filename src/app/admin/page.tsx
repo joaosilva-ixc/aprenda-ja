@@ -26,6 +26,24 @@ type StudentAccess = {
   lastAccessAt: string | null;
 };
 
+type TrendPoint = {
+  key: string;
+  label: string;
+  count: number;
+};
+
+type Engagement = {
+  id: string;
+  name: string;
+  email: string;
+  streakCount: number;
+  completed: number;
+  favorites: number;
+  totalProgress: number;
+  percentual: number;
+  lastAccessAt: string | null;
+};
+
 type Dashboard = {
   summary: {
     totalAulas: number;
@@ -36,6 +54,9 @@ type Dashboard = {
   topVideos: TopVideo[];
   viewsByTheme: ThemeStat[];
   lastAccess: StudentAccess[];
+  trend: TrendPoint[];
+  engagement: Engagement[];
+  engagementTotal: number;
 };
 
 function formatDate(iso: string | null) {
@@ -140,6 +161,24 @@ export default function AdminDashboardPage() {
         </div>
         <div className="flex items-center gap-2">
           <Link
+            href="/admin/aulas"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/20"
+          >
+            Aulas
+          </Link>
+          <Link
+            href="/admin/temas"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/20"
+          >
+            Temas
+          </Link>
+          <Link
+            href="/admin/anuncio"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/20"
+          >
+            Aviso
+          </Link>
+          <Link
             href="/admin/usuarios"
             className="inline-flex items-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/20"
           >
@@ -171,6 +210,61 @@ export default function AdminDashboardPage() {
           </div>
         ))}
       </div>
+
+      {/* Exportar relatórios */}
+      <div className="animate-fade-up mb-6 flex flex-wrap items-center gap-2 rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur [animation-delay:50ms]">
+        <span className="mr-1 text-sm font-semibold text-white">Exportar relatórios:</span>
+        <a
+          href="/api/admin/export?type=aulas"
+          className="rounded-lg bg-white/15 px-3 py-1.5 text-xs font-bold text-white backdrop-blur transition hover:bg-white/25"
+        >
+          Aulas (CSV)
+        </a>
+        <a
+          href="/api/admin/export?type=alunos"
+          className="rounded-lg bg-white/15 px-3 py-1.5 text-xs font-bold text-white backdrop-blur transition hover:bg-white/25"
+        >
+          Alunos (CSV)
+        </a>
+        <a
+          href="/api/admin/export?type=progresso"
+          className="rounded-lg bg-white/15 px-3 py-1.5 text-xs font-bold text-white backdrop-blur transition hover:bg-white/25"
+        >
+          Progresso (CSV)
+        </a>
+      </div>
+
+      {/* Evolução de acessos */}
+      <section className="animate-fade-up mb-6 rounded-3xl bg-white p-6 shadow-2xl shadow-blue-900/20 [animation-delay:125ms]">
+        <h2 className="text-sm font-bold tracking-wide text-gray-800 uppercase">
+          Acessos nos últimos 14 dias
+        </h2>
+        {data.trend.every((t) => t.count === 0) ? (
+          <p className="mt-6 rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-sm text-gray-500">
+            Sem acessos registrados nos últimos 14 dias.
+          </p>
+        ) : (
+          <div className="mt-5 flex items-end gap-1 sm:gap-1.5">
+            {(() => {
+              const maxT = Math.max(1, ...data.trend.map((t) => t.count));
+              return data.trend.map((point) => (
+                <div key={point.key} className="group flex flex-1 flex-col items-center gap-1">
+                  <div className="flex h-full w-full items-end justify-center">
+                    <div
+                      className="w-full max-w-8 rounded-t-md bg-gradient-to-t from-blue-600 to-indigo-500 shadow-sm transition group-hover:from-blue-700 group-hover:to-indigo-600"
+                      style={{ height: `${Math.max(4, (point.count / maxT) * 100)}%` }}
+                      title={`${point.label}: ${point.count} acesso(s)`}
+                    />
+                  </div>
+                  <span className="text-[9px] font-semibold text-gray-400 sm:text-[10px]">
+                    {point.label}
+                  </span>
+                </div>
+              ));
+            })()}
+          </div>
+        )}
+      </section>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Vídeos mais acessados */}
@@ -284,6 +378,59 @@ export default function AdminDashboardPage() {
               </li>
             ))}
           </ul>
+        )}
+      </section>
+
+      {/* Engajamento dos alunos */}
+      <section className="animate-fade-up mt-6 rounded-3xl bg-white p-6 shadow-2xl shadow-blue-900/20 [animation-delay:300ms]">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-bold tracking-wide text-gray-800 uppercase">
+            Engajamento dos alunos
+          </h2>
+          <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-700">
+            {data.engagementTotal} aluno(s) com atividade
+          </span>
+        </div>
+        {!data.engagement.length ? (
+          <p className="mt-6 rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-sm text-gray-500">
+            Nenhum aluno com progresso ou streak registrado ainda.
+          </p>
+        ) : (
+          <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
+            {data.engagement.map((student) => (
+              <div
+                key={student.id}
+                className="rounded-2xl border border-gray-100 bg-gray-50/60 p-4"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold text-gray-900">{student.name}</p>
+                    <p className="truncate text-xs text-gray-500">{student.email}</p>
+                  </div>
+                  <span className="shrink-0 rounded-full bg-indigo-50 px-2.5 py-1 text-[11px] font-bold text-indigo-700">
+                    {student.percentual}%
+                  </span>
+                </div>
+                <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-gray-200">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-600"
+                    style={{ width: `${student.percentual}%` }}
+                  />
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2 text-[11px] font-semibold text-gray-600">
+                  <span className="rounded-full bg-white px-2 py-1 shadow-sm">
+                    ✓ {student.completed} concluída(s)
+                  </span>
+                  <span className="rounded-full bg-white px-2 py-1 shadow-sm">
+                    ★ {student.favorites} favorita(s)
+                  </span>
+                  <span className="rounded-full bg-white px-2 py-1 shadow-sm">
+                    🔥 {student.streakCount} dia(s) seguidos
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </section>
     </main>

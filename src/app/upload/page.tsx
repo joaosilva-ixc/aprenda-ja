@@ -4,11 +4,10 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { upload } from "@vercel/blob/client";
-import { ThemeSlug } from "@/generated/prisma/enums";
 
 type Tema = {
   id: string;
-  slug: ThemeSlug;
+  slug: string;
   name: string;
 };
 

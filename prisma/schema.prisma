@@ -7,13 +7,6 @@ datasource db {
   provider = "postgresql"
 }
 
-enum ThemeSlug {
-  CONFIGURACAO_GERAL
-  USABILIDADE
-  PABX
-  FLUXO_COMUNICACAO
-}
-
 enum VideoStatus {
   UPLOADING
   READY
@@ -28,12 +21,12 @@ enum UserRole {
 }
 
 model Theme {
-  id        String    @id @default(cuid())
-  slug      ThemeSlug @unique
+  id        String @id @default(cuid())
+  slug      String @unique
   name      String
   icon      String
   color     String
-  createdAt DateTime  @default(now())
+  createdAt DateTime @default(now())
   aulas     Aula[]
 }
 
@@ -81,4 +74,10 @@ model AulaProgress {
   updatedAt     DateTime @updatedAt
 
   @@unique([userId, aulaId])
+}
+
+model Setting {
+  key       String   @id
+  value     String?
+  updatedAt DateTime @updatedAt
 }

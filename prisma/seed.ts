@@ -2,13 +2,12 @@ import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
 import * as bcrypt from "bcryptjs";
-import type { ThemeSlug } from "../src/generated/prisma/enums";
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  const temas: { slug: ThemeSlug; name: string; icon: string; color: string }[] = [
+  const temas: { slug: string; name: string; icon: string; color: string }[] = [
     {
       slug: "CONFIGURACAO_GERAL",
       name: "Configuração Geral",
