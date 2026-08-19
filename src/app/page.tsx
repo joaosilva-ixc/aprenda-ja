@@ -136,10 +136,6 @@ export default function Home() {
             aprendendo na prática
           </span>
         </h1>
-        <p className="mx-auto mt-4 max-w-xl text-base text-blue-100/90 sm:text-lg">
-          Gravações de aulas e cursos, organizadas por tema para você consultar quando precisar.
-        </p>
-
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <a
             href="#temas"
