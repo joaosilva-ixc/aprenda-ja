@@ -3,7 +3,8 @@ import { jwtVerify } from "jose";
 
 const SESSION_COOKIE = "aj_session";
 const PUBLIC_ROUTES = new Set(["/login"]);
-const ADMIN_ROUTES = new Set(["/admin", "/upload"]);
+const STAFF_ROUTES = new Set(["/admin/usuarios"]);
+const MASTER_ONLY_ROUTES = new Set(["/upload", "/admin/aulas", "/admin/temas", "/admin/anuncio"]);
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -40,7 +41,11 @@ export async function proxy(request: NextRequest) {
 
   const role = payload.role as string | undefined;
 
-  if (ADMIN_ROUTES.has(pathname) && role !== "ADMIN") {
+  if (MASTER_ONLY_ROUTES.has(pathname) && role !== "MASTER") {
+    return NextResponse.redirect(new URL("/", request.url));
+  }
+
+  if ((pathname === "/admin" || STAFF_ROUTES.has(pathname)) && role !== "MASTER" && role !== "ADMIN") {
     return NextResponse.redirect(new URL("/", request.url));
   }
 

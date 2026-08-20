@@ -8,8 +8,20 @@ type User = {
   id: string;
   name: string;
   email: string;
-  role: "ADMIN" | "ALUNO";
+  role: "MASTER" | "ADMIN" | "ALUNO";
   createdAt: string;
+};
+
+const roleLabels: Record<User["role"], string> = {
+  MASTER: "Master",
+  ADMIN: "Admin",
+  ALUNO: "Aluno",
+};
+
+const roleBadges: Record<User["role"], string> = {
+  MASTER: "bg-amber-100 text-amber-700",
+  ADMIN: "bg-indigo-100 text-indigo-700",
+  ALUNO: "bg-emerald-100 text-emerald-700",
 };
 
 export default function AdminUsersPage() {
@@ -18,10 +30,11 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [q, setQ] = useState("");
+  const [current, setCurrent] = useState<{ id: string; role: string } | null>(null);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState<"ALUNO" | "ADMIN">("ALUNO");
+  const [role, setRole] = useState<User["role"]>("ALUNO");
   const [sending, setSending] = useState(false);
   const [createdUser, setCreatedUser] = useState<{
     name: string;
@@ -32,10 +45,21 @@ export default function AdminUsersPage() {
   const [editing, setEditing] = useState<User | null>(null);
   const [editName, setEditName] = useState("");
   const [editEmail, setEditEmail] = useState("");
-  const [editRole, setEditRole] = useState<"ALUNO" | "ADMIN">("ALUNO");
+  const [editRole, setEditRole] = useState<User["role"]>("ALUNO");
   const [editPassword, setEditPassword] = useState("");
   const [editSending, setEditSending] = useState(false);
   const [editError, setEditError] = useState("");
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.user) setCurrent({ id: d.user.id, role: d.user.role });
+      })
+      .catch(() => {});
+  }, []);
+
+  const canAssignMaster = current?.role === "MASTER";
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -107,8 +131,8 @@ export default function AdminUsersPage() {
   }
 
   async function handleDelete(user: User) {
-    if (user.role === "ADMIN") return;
-    if (!window.confirm(`Excluir o aluno ${user.name}?`)) return;
+    if (user.role === "MASTER" || user.id === current?.id) return;
+    if (!window.confirm(`Excluir o usuário ${user.name}?`)) return;
     try {
       const res = await fetch(`/api/admin/users/${user.id}`, { method: "DELETE" });
       if (!res.ok) {
@@ -216,11 +240,12 @@ export default function AdminUsersPage() {
             <label className="mb-1.5 block text-sm font-semibold text-gray-700">Perfil</label>
             <select
               value={role}
-              onChange={(e) => setRole(e.target.value as "ALUNO" | "ADMIN")}
+              onChange={(e) => setRole(e.target.value as User["role"])}
               className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200"
             >
               <option value="ALUNO">Aluno</option>
               <option value="ADMIN">Administrador</option>
+              {canAssignMaster && <option value="MASTER">Master</option>}
             </select>
           </div>
         </div>
@@ -299,20 +324,20 @@ export default function AdminUsersPage() {
                 <div className="flex shrink-0 items-center gap-2">
                   <span
                     className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${
-                      user.role === "ADMIN"
-                        ? "bg-indigo-100 text-indigo-700"
-                        : "bg-emerald-100 text-emerald-700"
+                      roleBadges[user.role]
                     }`}
                   >
-                    {user.role === "ADMIN" ? "Admin" : "Aluno"}
+                    {roleLabels[user.role]}
                   </span>
-                  <button
-                    onClick={() => openEdit(user)}
-                    className="rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-600 transition hover:bg-blue-100 active:scale-95"
-                  >
-                    Editar
-                  </button>
-                  {user.role === "ALUNO" && (
+                  {user.role !== "MASTER" && (
+                    <button
+                      onClick={() => openEdit(user)}
+                      className="rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-600 transition hover:bg-blue-100 active:scale-95"
+                    >
+                      Editar
+                    </button>
+                  )}
+                  {user.role !== "MASTER" && user.id !== current?.id && (
                     <button
                       onClick={() => handleDelete(user)}
                       className="rounded-lg bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-100 active:scale-95"
@@ -368,11 +393,12 @@ export default function AdminUsersPage() {
                 <label className="mb-1.5 block text-sm font-semibold text-gray-700">Perfil</label>
                 <select
                   value={editRole}
-                  onChange={(e) => setEditRole(e.target.value as "ALUNO" | "ADMIN")}
+                  onChange={(e) => setEditRole(e.target.value as User["role"])}
                   className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200"
                 >
                   <option value="ALUNO">Aluno</option>
                   <option value="ADMIN">Administrador</option>
+                  {canAssignMaster && <option value="MASTER">Master</option>}
                 </select>
               </div>
               <div>

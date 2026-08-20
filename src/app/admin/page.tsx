@@ -87,6 +87,14 @@ export default function AdminDashboardPage() {
   const [data, setData] = useState<Dashboard | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [role, setRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((r) => r.json())
+      .then((d) => setRole(d.user?.role ?? null))
+      .catch(() => {});
+  }, []);
 
   const fetchDashboard = useCallback(async () => {
     setLoading(true);
@@ -160,36 +168,42 @@ export default function AdminDashboardPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Link
-            href="/admin/aulas"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/20"
-          >
-            Aulas
-          </Link>
-          <Link
-            href="/admin/temas"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/20"
-          >
-            Temas
-          </Link>
-          <Link
-            href="/admin/anuncio"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/20"
-          >
-            Aviso
-          </Link>
+          {role === "MASTER" && (
+            <>
+              <Link
+                href="/admin/aulas"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/20"
+              >
+                Aulas
+              </Link>
+              <Link
+                href="/admin/temas"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/20"
+              >
+                Temas
+              </Link>
+              <Link
+                href="/admin/anuncio"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/20"
+              >
+                Aviso
+              </Link>
+            </>
+          )}
           <Link
             href="/admin/usuarios"
             className="inline-flex items-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/20"
           >
             Usuários
           </Link>
-          <Link
-            href="/upload"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/20"
-          >
-            Enviar gravação
-          </Link>
+          {role === "MASTER" && (
+            <Link
+              href="/upload"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/20"
+            >
+              Enviar gravação
+            </Link>
+          )}
         </div>
       </div>
 

@@ -43,8 +43,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  let actor;
   try {
-    await requireAdmin();
+    actor = await requireAdmin();
   } catch (err) {
     return authError(err);
   }
@@ -56,7 +57,21 @@ export async function POST(request: Request) {
 
   const name = String(body.name ?? "").trim();
   const email = String(body.email ?? "").trim().toLowerCase();
-  const role = String(body.role ?? "ALUNO") === "ADMIN" ? "ADMIN" : "ALUNO";
+  const requestedRole = String(body.role ?? "ALUNO");
+  const isMaster = actor.role === "MASTER";
+  const role =
+    requestedRole === "MASTER" && isMaster
+      ? "MASTER"
+      : requestedRole === "ADMIN"
+        ? "ADMIN"
+        : "ALUNO";
+
+  if (requestedRole === "MASTER" && !isMaster) {
+    return NextResponse.json(
+      { error: "Apenas o acesso master pode conceder o perfil master" },
+      { status: 403 },
+    );
+  }
 
   if (!name || !email) {
     return NextResponse.json(

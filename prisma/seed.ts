@@ -46,22 +46,20 @@ async function main() {
 
   const adminEmail = process.env.ADMIN_EMAIL;
   const adminPassword = process.env.ADMIN_PASSWORD;
+  const MASTER_EMAIL = "joao.silva@opasuite.com.br";
   if (adminEmail && adminPassword) {
-    const existing = await prisma.user.findUnique({ where: { email: adminEmail } });
-    if (existing) {
-      console.log("Admin já existe para:", adminEmail);
-    } else {
-      const passwordHash = await bcrypt.hash(adminPassword, 10);
-      await prisma.user.create({
-        data: {
-          name: "Administrador",
-          email: adminEmail,
-          passwordHash,
-          role: "ADMIN",
-        },
-      });
-      console.log("Admin criado para:", adminEmail);
-    }
+    const isMaster = adminEmail.toLowerCase() === MASTER_EMAIL;
+    await prisma.user.upsert({
+      where: { email: adminEmail },
+      update: { role: isMaster ? "MASTER" : "ADMIN" },
+      create: {
+        name: isMaster ? "Master" : "Administrador",
+        email: adminEmail,
+        passwordHash: await bcrypt.hash(adminPassword, 10),
+        role: isMaster ? "MASTER" : "ADMIN",
+      },
+    });
+    console.log(`Conta de acesso criada/atualizada para ${adminEmail} (${isMaster ? "master" : "admin"}).`);
   } else {
     console.warn("ADMIN_EMAIL/ADMIN_PASSWORD não definidos, admin não criado.");
   }

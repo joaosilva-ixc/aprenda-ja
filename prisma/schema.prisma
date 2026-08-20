@@ -16,6 +16,7 @@ enum VideoStatus {
 }
 
 enum UserRole {
+  MASTER
   ADMIN
   ALUNO
 }

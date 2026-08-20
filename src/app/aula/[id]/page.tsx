@@ -25,7 +25,8 @@ export default async function AulaPage({
   const user = await getSessionUser();
   if (!user) redirect("/login");
 
-  const isAdmin = user.role === "ADMIN";
+  const isStaff = user.role === "ADMIN" || user.role === "MASTER";
+  const canDelete = user.role === "MASTER";
 
   const { id } = await params;
   const aula = await prisma.aula.findUnique({
@@ -38,7 +39,7 @@ export default async function AulaPage({
   const canPlay = Boolean(aula.videoUrl) && (aula.status === "READY" || aula.status === "SYNCED");
 
   let progress = null;
-  if (canPlay && user.role !== "ADMIN") {
+  if (canPlay && !isStaff) {
     await prisma.aula.update({
       where: { id },
       data: { viewCount: { increment: 1 } },
@@ -70,7 +71,7 @@ export default async function AulaPage({
           </svg>
           Voltar
         </Link>
-        {isAdmin && <DeleteAulaButton aulaId={aula.id} size="full" />}
+        {canDelete && <DeleteAulaButton aulaId={aula.id} size="full" />}
       </div>
 
       <div className="animate-fade-up overflow-hidden rounded-3xl bg-white shadow-2xl shadow-blue-900/20 [animation-delay:100ms]">
@@ -121,7 +122,7 @@ export default async function AulaPage({
                 statusLabel={statusLabels[aula.status]}
                 initialCompleted={progress?.completed ?? false}
                 initialFavorite={progress?.favorite ?? false}
-                admin={isAdmin}
+                admin={isStaff}
               />
             ) : (
               <div className="flex aspect-video w-full items-center justify-center overflow-hidden rounded-2xl bg-black text-sm text-gray-400 shadow-lg">

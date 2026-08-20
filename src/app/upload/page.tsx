@@ -46,7 +46,7 @@ export default function UploadPage() {
           router.push("/login");
           return;
         }
-        if (data.user.role !== "ADMIN") {
+        if (data.user.role !== "MASTER") {
           router.push("/");
           return;
         }

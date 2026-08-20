@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { AuthError, requireAdmin } from "@/lib/auth";
+import { AuthError, requireMaster } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
@@ -8,7 +8,7 @@ const ANNOUNCEMENT_KEY = "anuncio";
 
 export async function GET() {
   try {
-    await requireAdmin();
+    await requireMaster();
   } catch (err) {
     if (err instanceof AuthError) {
       return NextResponse.json({ error: err.message }, { status: err.status });
@@ -25,7 +25,7 @@ export async function GET() {
 
 export async function PATCH(request: Request) {
   try {
-    await requireAdmin();
+    await requireMaster();
   } catch (err) {
     if (err instanceof AuthError) {
       return NextResponse.json({ error: err.message }, { status: err.status });

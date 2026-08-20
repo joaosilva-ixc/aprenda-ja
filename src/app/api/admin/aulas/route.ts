@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin, AuthError } from "@/lib/auth";
+import { requireMaster, AuthError } from "@/lib/auth";
 import { VideoStatus } from "@/generated/prisma/enums";
 
 export const runtime = "nodejs";
@@ -9,7 +9,7 @@ const VALID_STATUSES: VideoStatus[] = Object.values(VideoStatus);
 
 export async function GET(request: Request) {
   try {
-    await requireAdmin();
+    await requireMaster();
   } catch (err) {
     if (err instanceof AuthError) {
       return NextResponse.json({ error: err.message }, { status: err.status });

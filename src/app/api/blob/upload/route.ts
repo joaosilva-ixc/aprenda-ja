@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { handleUpload } from "@vercel/blob/client";
-import { requireAdmin, AuthError } from "@/lib/auth";
+import { requireMaster, AuthError } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
@@ -10,7 +10,7 @@ const ALLOWED_CONTENT_TYPES = ["video/*"];
 export async function POST(request: Request) {
   let admin;
   try {
-    admin = await requireAdmin();
+    admin = await requireMaster();
   } catch (err) {
     if (err instanceof AuthError) {
       return NextResponse.json({ error: err.message }, { status: err.status });

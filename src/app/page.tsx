@@ -125,6 +125,9 @@ export default function Home() {
   }
 
   const isAdmin = user?.role === "ADMIN";
+  const isMaster = user?.role === "MASTER";
+  const isStaff = isAdmin || isMaster;
+  const canDelete = user?.role === "MASTER";
 
   return (
     <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-16">
@@ -311,7 +314,8 @@ export default function Home() {
                       key={aula.id}
                       aula={aula}
                       statusLabels={statusLabels}
-                      isAdmin={isAdmin}
+                      isStaff={isStaff}
+                      canDelete={canDelete}
                       delay={100 + idx * 40 + i * 60}
                     />
                   ))}
@@ -328,12 +332,14 @@ export default function Home() {
 function AulaCard({
   aula,
   statusLabels,
-  isAdmin,
+  isStaff,
+  canDelete,
   delay,
 }: {
   aula: Aula;
   statusLabels: Record<string, string>;
-  isAdmin: boolean;
+  isStaff: boolean;
+  canDelete: boolean;
   delay: number;
 }) {
   const canPlay = aula.status === "READY" || aula.status === "SYNCED";
@@ -345,7 +351,7 @@ function AulaCard({
   async function toggleFavorite(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
-    if (favBusy || isAdmin) return;
+    if (favBusy || isStaff) return;
     setFavBusy(true);
     const target = !fav;
     setFav(target);
@@ -404,8 +410,8 @@ function AulaCard({
         <span className="absolute bottom-3 left-3 flex items-center gap-1.5 rounded-full bg-black/40 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur">
           {aula.theme.name}
         </span>
-        {isAdmin && <DeleteAulaButton aulaId={aula.id} />}
-        {!isAdmin && aula.completed && (
+        {canDelete && <DeleteAulaButton aulaId={aula.id} />}
+        {!isStaff && aula.completed && (
           <span
             className="absolute right-3 bottom-3 flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500 text-white shadow-lg"
             title="Aula concluída"
@@ -415,7 +421,7 @@ function AulaCard({
             </svg>
           </span>
         )}
-        {!isAdmin && (
+        {!isStaff && (
           <button
             type="button"
             aria-label={fav ? "Remover dos favoritos" : "Favoritar aula"}

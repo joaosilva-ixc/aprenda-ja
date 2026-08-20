@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin, getSessionUser, AuthError } from "@/lib/auth";
+import { requireMaster, getSessionUser, AuthError } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   try {
-    await requireAdmin();
+    await requireMaster();
   } catch (err) {
     if (err instanceof AuthError) {
       return NextResponse.json({ error: err.message }, { status: err.status });
@@ -86,7 +86,7 @@ export async function GET(request: Request) {
   });
 
   let progressMap = new Map<string, { completed: boolean; favorite: boolean }>();
-  if (user.role !== "ADMIN") {
+  if (user.role !== "ADMIN" && user.role !== "MASTER") {
     const progress = await prisma.aulaProgress.findMany({
       where: { userId: user.id, aulaId: { in: aulas.map((a) => a.id) } },
       select: { aulaId: true, completed: true, favorite: true },

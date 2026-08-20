@@ -8,9 +8,9 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  let admin;
+  let actor;
   try {
-    admin = await requireAdmin();
+    actor = await requireAdmin();
   } catch (err) {
     if (err instanceof AuthError) {
       return NextResponse.json({ error: err.message }, { status: err.status });
@@ -34,10 +34,24 @@ export async function PATCH(
     body.email === undefined
       ? undefined
       : String(body.email ?? "").trim().toLowerCase();
-  const role =
-    String(body.role ?? "") === "ADMIN" || String(body.role ?? "") === "ALUNO"
-      ? (String(body.role) as "ADMIN" | "ALUNO")
-      : undefined;
+  const isMaster = actor.role === "MASTER";
+  const requestedRole = body.role === undefined ? undefined : String(body.role);
+  let role: "MASTER" | "ADMIN" | "ALUNO" | undefined;
+  if (requestedRole !== undefined) {
+    if (requestedRole === "MASTER") {
+      if (!isMaster) {
+        return NextResponse.json(
+          { error: "Apenas o acesso master pode conceder o perfil master" },
+          { status: 403 },
+        );
+      }
+      role = "MASTER";
+    } else if (requestedRole === "ADMIN") {
+      role = "ADMIN";
+    } else if (requestedRole === "ALUNO") {
+      role = "ALUNO";
+    }
+  }
   const password = body.password === undefined ? undefined : String(body.password ?? "");
 
   if (name !== undefined && !name) {
@@ -67,9 +81,16 @@ export async function PATCH(
     );
   }
 
-  if (role === "ALUNO" && id === admin.id) {
+  if (user.role === "MASTER" && !isMaster) {
     return NextResponse.json(
-      { error: "Você não pode remover o próprio perfil de administrador" },
+      { error: "Apenas o acesso master pode gerenciar contas master" },
+      { status: 403 },
+    );
+  }
+
+  if (id === actor.id && role !== undefined && role !== actor.role) {
+    return NextResponse.json(
+      { error: "Você não pode alterar o próprio perfil de acesso" },
       { status: 400 },
     );
   }
@@ -101,9 +122,9 @@ export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  let admin;
+  let actor;
   try {
-    admin = await requireAdmin();
+    actor = await requireAdmin();
   } catch (err) {
     if (err instanceof AuthError) {
       return NextResponse.json({ error: err.message }, { status: err.status });
@@ -112,7 +133,7 @@ export async function DELETE(
   }
 
   const { id } = await params;
-  if (id === admin.id) {
+  if (id === actor.id) {
     return NextResponse.json(
       { error: "Não é possível excluir a própria conta" },
       { status: 400 },
@@ -122,6 +143,13 @@ export async function DELETE(
   const user = await prisma.user.findUnique({ where: { id } });
   if (!user) {
     return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 });
+  }
+
+  if (user.role === "MASTER") {
+    return NextResponse.json(
+      { error: "Não é possível excluir contas com acesso master" },
+      { status: 400 },
+    );
   }
 
   await prisma.user.delete({ where: { id } });

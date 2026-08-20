@@ -98,8 +98,19 @@ export async function requireAdmin() {
   if (!user) {
     throw new AuthError("Não autenticado", 401);
   }
-  if (user.role !== "ADMIN") {
+  if (user.role !== "ADMIN" && user.role !== "MASTER") {
     throw new AuthError("Acesso restrito a administradores", 403);
+  }
+  return user;
+}
+
+export async function requireMaster() {
+  const user = await getSessionUser();
+  if (!user) {
+    throw new AuthError("Não autenticado", 401);
+  }
+  if (user.role !== "MASTER") {
+    throw new AuthError("Acesso restrito ao perfil master", 403);
   }
   return user;
 }
