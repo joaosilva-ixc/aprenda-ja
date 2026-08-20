@@ -64,6 +64,7 @@ model User {
   mustChangePassword Boolean @default(false)
   streakCount  Int      @default(0)
   lastStudyDate DateTime?
+  notificationsClearedAt DateTime?
   progress     AulaProgress[]
   announcementReads AnnouncementRead[]
   createdAt    DateTime @default(now())

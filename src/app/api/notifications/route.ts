@@ -17,6 +17,11 @@ export async function GET() {
 
   const [announcements, reads] = await Promise.all([
     prisma.announcement.findMany({
+      where: {
+        ...(user.notificationsClearedAt
+          ? { createdAt: { gt: user.notificationsClearedAt } }
+          : {}),
+      },
       orderBy: { createdAt: "desc" },
       take: 50,
     }),

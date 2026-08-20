@@ -119,6 +119,23 @@ export function NotificationBell() {
     }
   }
 
+  async function clearList() {
+    if (busy) return;
+    if (!window.confirm("Limpar a lista de notificações?")) return;
+    setBusy(true);
+    try {
+      const res = await fetch("/api/notifications/clear", { method: "POST" });
+      if (res.ok) {
+        setItems([]);
+        setUnread(0);
+      }
+    } catch {
+      // silencioso
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div ref={ref} className="relative">
       <button
@@ -164,16 +181,26 @@ export function NotificationBell() {
                   : "Você está em dia ✨"}
               </p>
             </div>
-            {unread > 0 && (
+            <div className="flex items-center gap-2">
+              {unread > 0 && (
+                <button
+                  type="button"
+                  onClick={markAllRead}
+                  disabled={busy}
+                  className="rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-100 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  Marcar todas como lidas
+                </button>
+              )}
               <button
                 type="button"
-                onClick={markAllRead}
+                onClick={clearList}
                 disabled={busy}
-                className="rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-100 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-lg bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-100 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Marcar todas como lidas
+                Limpar lista
               </button>
-            )}
+            </div>
           </div>
 
           <div className="max-h-80 overflow-y-auto">
