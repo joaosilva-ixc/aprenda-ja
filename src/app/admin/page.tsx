@@ -375,7 +375,7 @@ export default function AdminDashboardPage() {
         </h2>
         {!data?.lastAccess.length ? (
           <p className="mt-6 rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-sm text-gray-500">
-            Nenhum aluno acessou a plataforma ainda.
+            Nenhum usuário acessou a plataforma ainda.
           </p>
         ) : (
           <ul className="mt-5 divide-y divide-gray-100">
@@ -404,12 +404,12 @@ export default function AdminDashboardPage() {
 Engajamento dos usuários
           </h2>
           <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-700">
-            {data.engagementTotal} aluno(s) com atividade
+            {data.engagementTotal} usuário(s) com atividade
           </span>
         </div>
         {!data.engagement.length ? (
           <p className="mt-6 rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-sm text-gray-500">
-            Nenhum aluno com progresso ou streak registrado ainda.
+            Nenhum usuário com progresso ou streak registrado ainda.
           </p>
         ) : (
           <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">

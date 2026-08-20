@@ -62,7 +62,7 @@ export async function GET() {
         _sum: { viewCount: true },
       }),
       prisma.user.findMany({
-        where: { role: "ALUNO", lastAccessAt: { not: null } },
+        where: { lastAccessAt: { not: null } },
         select: { id: true, name: true, email: true, lastAccessAt: true },
         orderBy: { lastAccessAt: "desc" },
         take: 10,
@@ -75,7 +75,6 @@ export async function GET() {
         select: { lastAccessedAt: true },
       }),
       prisma.user.findMany({
-        where: { role: "ALUNO" },
         select: {
           id: true,
           name: true,
