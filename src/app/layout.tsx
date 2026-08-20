@@ -68,9 +68,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <footer className="mt-auto border-t border-white/10 bg-slate-900/40 py-8 backdrop-blur-sm">
           <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-2 px-4 text-center">
             <p className="text-sm font-semibold text-white">Aprenda Já · Academy</p>
-            <p className="text-xs text-blue-100/70">
-              Treinamentos Opa — Configuração Geral, Usabilidade, PABX e Fluxo de Comunicação.
-            </p>
+            <p className="text-xs text-blue-100/70">Desenvolvido por João Pedro</p>
           </div>
         </footer>
       </body>
