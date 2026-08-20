@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export function AulaPlayer({
@@ -9,6 +9,7 @@ export function AulaPlayer({
   statusLabel,
   initialCompleted,
   initialFavorite,
+  initialPosition = 0,
   admin,
 }: {
   aulaId: string;
@@ -16,6 +17,7 @@ export function AulaPlayer({
   statusLabel: string;
   initialCompleted: boolean;
   initialFavorite: boolean;
+  initialPosition?: number;
   admin: boolean;
 }) {
   const router = useRouter();
@@ -23,30 +25,129 @@ export function AulaPlayer({
   const [favorite, setFavorite] = useState(initialFavorite);
   const [saving, setSaving] = useState(false);
 
-  async function update(body: Record<string, unknown>) {
-    setSaving(true);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const positionRef = useRef(0);
+  const lastSavedRef = useRef(0);
+  const completedRef = useRef(initialCompleted);
+  const restoredRef = useRef(false);
+
+  completedRef.current = completed;
+
+  async function update(body: Record<string, unknown>, opts: { silent?: boolean } = {}) {
+    if (!opts.silent) setSaving(true);
     try {
       const res = await fetch("/api/progress", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      if (!res.ok && res.status !== 401) {
+      if (!opts.silent && !res.ok && res.status !== 401) {
         window.alert("Não foi possível salvar o progresso.");
       }
     } catch {
-      window.alert("Falha de rede ao salvar o progresso.");
+      if (!opts.silent) window.alert("Falha de rede ao salvar o progresso.");
     } finally {
-      setSaving(false);
-      router.refresh();
+      if (!opts.silent) {
+        setSaving(false);
+        router.refresh();
+      }
     }
   }
 
-  function onEnded() {
-    if (!completed) {
+  const savePosition = useCallback(
+    (position: number) => {
+      if (position <= 0) return;
+      positionRef.current = position;
+      if (Math.abs(position - lastSavedRef.current) < 5) return;
+      lastSavedRef.current = position;
+      fetch("/api/progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ aulaId, positionSec: Math.floor(position) }),
+        keepalive: true,
+      }).catch(() => {});
+    },
+    [aulaId],
+  );
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const video = videoRef.current;
+      if (video && !video.paused && video.currentTime > 0) {
+        savePosition(video.currentTime);
+      }
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [savePosition]);
+
+  useEffect(() => {
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") {
+        savePosition(videoRef.current?.currentTime ?? 0);
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, [savePosition]);
+
+  useEffect(() => {
+    return () => {
+      const position = positionRef.current;
+      if (position <= 0) return;
+      const payload = JSON.stringify({ aulaId, positionSec: Math.floor(position) });
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon(
+          "/api/progress",
+          new Blob([payload], { type: "application/json" }),
+        );
+      } else {
+        fetch("/api/progress", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: payload,
+          keepalive: true,
+        }).catch(() => {});
+      }
+    };
+  }, [aulaId]);
+
+  function onLoadedMetadata() {
+    const video = videoRef.current;
+    if (!video || restoredRef.current) return;
+    if (
+      initialPosition > 5 &&
+      (video.duration === Infinity || initialPosition < video.duration - 5)
+    ) {
+      video.currentTime = initialPosition;
+    }
+    restoredRef.current = true;
+  }
+
+  function onTimeUpdate() {
+    const video = videoRef.current;
+    if (video) positionRef.current = video.currentTime;
+    if (
+      video &&
+      video.duration > 0 &&
+      !completedRef.current &&
+      video.currentTime / video.duration >= 0.95
+    ) {
       setCompleted(true);
       update({ aulaId, completed: true });
     }
+  }
+
+  function onPause() {
+    savePosition(videoRef.current?.currentTime ?? 0);
+  }
+
+  function onEnded() {
+    const video = videoRef.current;
+    if (!completedRef.current) {
+      setCompleted(true);
+      update({ aulaId, completed: true });
+    }
+    savePosition(video?.currentTime ?? 0);
   }
 
   function toggleComplete() {
@@ -77,11 +178,15 @@ export function AulaPlayer({
     <div>
       <div className="overflow-hidden rounded-2xl bg-black shadow-lg">
         <video
+          ref={videoRef}
           className="aspect-video w-full"
           controls
           playsInline
           preload="metadata"
           src={videoUrl}
+          onLoadedMetadata={onLoadedMetadata}
+          onTimeUpdate={onTimeUpdate}
+          onPause={onPause}
           onEnded={onEnded}
         />
       </div>

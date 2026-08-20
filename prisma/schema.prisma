@@ -78,6 +78,7 @@ model AulaProgress {
   aula          Aula     @relation(fields: [aulaId], references: [id], onDelete: Cascade)
   completed     Boolean  @default(false)
   favorite      Boolean  @default(false)
+  positionSec   Int      @default(0)
   lastAccessedAt DateTime @default(now())
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt

@@ -122,6 +122,7 @@ export default async function AulaPage({
                 statusLabel={statusLabels[aula.status]}
                 initialCompleted={progress?.completed ?? false}
                 initialFavorite={progress?.favorite ?? false}
+                initialPosition={progress?.positionSec ?? 0}
                 admin={isStaff}
               />
             ) : (

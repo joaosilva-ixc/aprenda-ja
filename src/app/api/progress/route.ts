@@ -39,11 +39,15 @@ export async function POST(request: Request) {
     body.completed === undefined ? existing?.completed ?? false : Boolean(body.completed);
   const favorite =
     body.favorite === undefined ? existing?.favorite ?? false : Boolean(body.favorite);
+  const positionSec =
+    body.positionSec === undefined
+      ? existing?.positionSec ?? 0
+      : Math.max(0, Math.floor(Number(body.positionSec) || 0));
 
   const progress = await prisma.aulaProgress.upsert({
     where: { userId_aulaId: { userId: user.id, aulaId } },
-    update: { completed, favorite, lastAccessedAt: new Date() },
-    create: { userId: user.id, aulaId, completed, favorite },
+    update: { completed, favorite, positionSec, lastAccessedAt: new Date() },
+    create: { userId: user.id, aulaId, completed, favorite, positionSec },
   });
 
   if (completed) {
