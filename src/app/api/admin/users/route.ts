@@ -10,8 +10,9 @@ import {
 export const runtime = "nodejs";
 
 export async function GET(request: Request) {
+  let actor;
   try {
-    await requireAdmin();
+    actor = await requireAdmin();
   } catch (err) {
     return authError(err);
   }
@@ -20,14 +21,17 @@ export async function GET(request: Request) {
   const q = searchParams.get("q") ?? "";
 
   const users = await prisma.user.findMany({
-    where: q
-      ? {
-          OR: [
-            { name: { contains: q, mode: "insensitive" } },
-            { email: { contains: q, mode: "insensitive" } },
-          ],
-        }
-      : {},
+    where: {
+      ...(actor.role === "MASTER" ? {} : { role: { not: "MASTER" } }),
+      ...(q
+        ? {
+            OR: [
+              { name: { contains: q, mode: "insensitive" } },
+              { email: { contains: q, mode: "insensitive" } },
+            ],
+          }
+        : {}),
+    },
     orderBy: { createdAt: "desc" },
   });
 
