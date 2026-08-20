@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type Notification = {
   id: string;
@@ -39,7 +39,7 @@ export function NotificationBell() {
   const [busy, setBusy] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  async function load() {
+  const load = useCallback(async () => {
     try {
       const res = await fetch("/api/notifications");
       const data = await res.json();
@@ -49,16 +49,23 @@ export function NotificationBell() {
     } catch {
       // silencioso
     }
-  }
+  }, []);
 
   useEffect(() => {
     const t = setTimeout(load, 200);
-    const timer = setInterval(load, 30000);
+    const timer = setInterval(load, 15000);
+    function onFocus() {
+      load();
+    }
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onFocus);
     return () => {
       clearTimeout(t);
       clearInterval(timer);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onFocus);
     };
-  }, []);
+  }, [load]);
 
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
@@ -116,7 +123,12 @@ export function NotificationBell() {
     <div ref={ref} className="relative">
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => {
+          setOpen((o) => {
+            if (!o) load();
+            return !o;
+          });
+        }}
         title="Notificações"
         aria-label="Notificações"
         className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 transition hover:bg-blue-50 hover:text-blue-700"
