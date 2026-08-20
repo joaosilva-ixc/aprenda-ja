@@ -211,7 +211,9 @@ export default function AdminDashboardPage() {
       <div className="animate-fade-up mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4 [animation-delay:100ms]">
         {[
           { label: "Aulas", value: summary?.totalAulas ?? 0 },
-          { label: "Alunos", value: summary?.totalAlunos ?? 0 },
+          ...(role === "MASTER"
+            ? [{ label: "Alunos", value: summary?.totalAlunos ?? 0 }]
+            : []),
           { label: "Visualizações", value: summary?.totalViews ?? 0 },
           { label: "Temas", value: summary?.totalTemas ?? 0 },
         ].map((card) => (
