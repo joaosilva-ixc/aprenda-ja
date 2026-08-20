@@ -68,7 +68,7 @@ export async function GET() {
         take: 10,
       }),
       prisma.aula.count(),
-      prisma.user.count({ where: { role: "ALUNO" } }),
+      prisma.user.count(),
       prisma.aula.aggregate({ _sum: { viewCount: true } }),
       prisma.aulaProgress.findMany({
         where: { lastAccessedAt: { gte: since } },
