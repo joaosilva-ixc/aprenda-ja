@@ -212,7 +212,7 @@ export default function AdminDashboardPage() {
         {[
           { label: "Aulas", value: summary?.totalAulas ?? 0 },
           ...(role === "MASTER"
-            ? [{ label: "Alunos", value: summary?.totalAlunos ?? 0 }]
+            ? [{ label: "Usuários", value: summary?.totalAlunos ?? 0 }]
             : []),
           { label: "Visualizações", value: summary?.totalViews ?? 0 },
           { label: "Temas", value: summary?.totalTemas ?? 0 },
@@ -240,7 +240,7 @@ export default function AdminDashboardPage() {
           href="/api/admin/export?type=alunos"
           className="rounded-lg bg-white/15 px-3 py-1.5 text-xs font-bold text-white backdrop-blur transition hover:bg-white/25"
         >
-          Alunos (CSV)
+          Usuários (CSV)
         </a>
         <a
           href="/api/admin/export?type=progresso"
@@ -371,7 +371,7 @@ export default function AdminDashboardPage() {
       {/* Último acesso dos alunos */}
       <section className="animate-fade-up mt-6 rounded-3xl bg-white p-6 shadow-2xl shadow-blue-900/20 [animation-delay:250ms]">
         <h2 className="text-sm font-bold tracking-wide text-gray-800 uppercase">
-          Último acesso dos alunos
+Último acesso dos usuários
         </h2>
         {!data?.lastAccess.length ? (
           <p className="mt-6 rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-sm text-gray-500">
@@ -401,7 +401,7 @@ export default function AdminDashboardPage() {
       <section className="animate-fade-up mt-6 rounded-3xl bg-white p-6 shadow-2xl shadow-blue-900/20 [animation-delay:300ms]">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-sm font-bold tracking-wide text-gray-800 uppercase">
-            Engajamento dos alunos
+Engajamento dos usuários
           </h2>
           <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-700">
             {data.engagementTotal} aluno(s) com atividade

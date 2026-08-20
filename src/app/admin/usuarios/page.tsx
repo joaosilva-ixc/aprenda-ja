@@ -198,10 +198,10 @@ export default function AdminUsersPage() {
         </Link>
         <div>
           <h1 className="text-2xl font-extrabold tracking-tight text-white drop-shadow">
-            Gerenciar alunos
+            Gerenciar usuários
           </h1>
           <p className="text-xs font-medium text-blue-100/80">
-            Crie contas de acesso para alunos e administradores.
+            Crie contas de acesso para usuários e administradores.
           </p>
         </div>
       </div>
