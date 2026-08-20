@@ -21,6 +21,12 @@ enum UserRole {
   ALUNO
 }
 
+enum AnnouncementType {
+  AVISO
+  COMUNICADO
+  NOVIDADE
+}
+
 model Theme {
   id        String @id @default(cuid())
   slug      String @unique
@@ -59,6 +65,7 @@ model User {
   streakCount  Int      @default(0)
   lastStudyDate DateTime?
   progress     AulaProgress[]
+  announcementReads AnnouncementRead[]
   createdAt    DateTime @default(now())
 }
 
@@ -75,6 +82,26 @@ model AulaProgress {
   updatedAt     DateTime @updatedAt
 
   @@unique([userId, aulaId])
+}
+
+model Announcement {
+  id        String            @id @default(cuid())
+  title     String?
+  message   String
+  type      AnnouncementType  @default(AVISO)
+  createdAt DateTime          @default(now())
+  reads     AnnouncementRead[]
+}
+
+model AnnouncementRead {
+  id             String       @id @default(cuid())
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  announcementId String
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  readAt         DateTime     @default(now())
+
+  @@unique([userId, announcementId])
 }
 
 model Setting {

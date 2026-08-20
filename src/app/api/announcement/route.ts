@@ -14,10 +14,10 @@ export async function GET() {
     return NextResponse.json({ error: "Erro interno" }, { status: 500 });
   }
 
-  const setting = await prisma.setting.findUnique({
-    where: { key: "anuncio" },
-    select: { value: true },
+  const latest = await prisma.announcement.findFirst({
+    orderBy: { createdAt: "desc" },
+    select: { message: true },
   });
 
-  return NextResponse.json({ announcement: setting?.value ?? "" });
+  return NextResponse.json({ announcement: latest?.message ?? "" });
 }

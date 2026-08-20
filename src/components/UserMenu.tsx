@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { NotificationBell } from "@/components/NotificationBell";
 
 type User = {
   id: string;
@@ -128,6 +129,7 @@ export function UserMenu() {
           </Link>
         </>
       )}
+      <NotificationBell />
       <div className="hidden flex-col items-end leading-tight sm:flex">
         <span className="max-w-[180px] truncate text-sm font-bold text-gray-800">{user.name}</span>
         <span
