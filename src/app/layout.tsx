@@ -66,32 +66,32 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         {children}
 
-        <footer className="mt-auto border-t border-white/10 bg-slate-900/40 py-8 backdrop-blur-sm">
-          <div className="mx-auto flex w-full max-w-6xl flex-col items-start gap-2 px-4">
+        <footer className="relative mt-auto border-t border-white/10 bg-slate-900/40 py-8 backdrop-blur-sm">
+          <a
+            href="https://central-opasuite.ixcsoft.com.br/"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Central de Ajuda do Opa"
+            title="Central de Ajuda do Opa"
+            className="absolute left-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/5 text-blue-100/70 ring-1 ring-white/10 transition hover:scale-110 hover:bg-white/10 hover:text-white"
+          >
+            <svg
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z"
+              />
+            </svg>
+          </a>
+          <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-2 px-4 text-center">
             <p className="text-sm font-semibold text-white">Aprenda Já · Academy</p>
             <p className="text-xs text-blue-100/70">Desenvolvido por João Pedro</p>
-            <a
-              href="https://central-opasuite.ixcsoft.com.br/"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Central de Ajuda do Opa"
-              title="Central de Ajuda do Opa"
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-blue-100/70 ring-1 ring-white/10 transition hover:scale-110 hover:bg-white/10 hover:text-white"
-            >
-              <svg
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z"
-                />
-              </svg>
-            </a>
           </div>
         </footer>
       </body>
