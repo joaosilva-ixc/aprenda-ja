@@ -67,7 +67,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
 
         <footer className="mt-auto border-t border-white/10 bg-slate-900/40 py-8 backdrop-blur-sm">
-          <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-2 px-4 text-center">
+          <div className="mx-auto flex w-full max-w-6xl flex-col items-start gap-2 px-4">
             <p className="text-sm font-semibold text-white">Aprenda Já · Academy</p>
             <p className="text-xs text-blue-100/70">Desenvolvido por João Pedro</p>
             <a
