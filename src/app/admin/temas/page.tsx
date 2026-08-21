@@ -165,12 +165,12 @@ export default function AdminTemasPage() {
 
       <form
         onSubmit={handleCreate}
-        className="animate-fade-up mb-6 space-y-4 rounded-3xl bg-white p-6 shadow-2xl shadow-blue-900/20 [animation-delay:100ms]"
+        className="animate-fade-up mb-6 space-y-4 rounded-3xl bg-white p-6 shadow-2xl shadow-blue-900/20 dark:bg-slate-900 [animation-delay:100ms]"
       >
         <h2 className="text-sm font-bold tracking-wide text-gray-800 uppercase">Novo tema</h2>
         <div className="grid grid-cols-1 gap-4">
           <div>
-            <label className="mb-1.5 block text-sm font-semibold text-gray-700">Nome</label>
+            <label className="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-slate-300">Nome</label>
             <input
               required
               value={name}
@@ -180,7 +180,7 @@ export default function AdminTemasPage() {
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-semibold text-gray-700">Cor</label>
+            <label className="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-slate-300">Cor</label>
             <div className="flex flex-wrap items-center gap-2">
               {defaultColors.map((c) => (
                 <button
@@ -194,7 +194,7 @@ export default function AdminTemasPage() {
                   style={{ backgroundColor: c }}
                 />
               ))}
-              <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm text-gray-600">
+              <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm text-gray-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
                 <input
                   type="color"
                   value={color}
@@ -208,7 +208,7 @@ export default function AdminTemasPage() {
         </div>
 
         {error && (
-          <p className="rounded-xl bg-red-50 px-3 py-2.5 text-sm text-red-700">{error}</p>
+          <p className="rounded-xl bg-red-50 px-3 py-2.5 text-sm text-red-700 dark:bg-red-950/60 dark:text-red-300">{error}</p>
         )}
 
         <button
@@ -231,7 +231,7 @@ export default function AdminTemasPage() {
             {temas.map((tema) => (
               <div
                 key={tema.id}
-                className="flex items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3 shadow-lg shadow-blue-900/10"
+                className="flex items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3 shadow-lg shadow-blue-900/10 dark:bg-slate-900"
               >
                 <div className="flex min-w-0 items-center gap-3">
                   <span
@@ -247,8 +247,8 @@ export default function AdminTemasPage() {
                     </svg>
                   </span>
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-bold text-gray-900">{tema.name}</p>
-                    <p className="text-xs text-gray-500">
+                    <p className="truncate text-sm font-bold text-gray-900 dark:text-slate-100">{tema.name}</p>
+                    <p className="text-xs text-gray-500 dark:text-slate-400">
                       {tema._count?.aulas ?? 0} aula(s)
                     </p>
                   </div>
@@ -262,7 +262,7 @@ export default function AdminTemasPage() {
                   </button>
                   <button
                     onClick={() => handleDelete(tema)}
-                    className="rounded-lg bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-100 active:scale-95"
+                    className="rounded-lg bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-100 active:scale-95 dark:bg-red-950/60 dark:text-red-300 dark:hover:bg-red-900/60"
                   >
                     Excluir
                   </button>
@@ -281,25 +281,25 @@ export default function AdminTemasPage() {
           <form
             onSubmit={handleUpdate}
             onClick={(e) => e.stopPropagation()}
-            className="animate-fade-up w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl shadow-blue-900/30"
+            className="animate-fade-up w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl shadow-blue-900/30 dark:bg-slate-900"
           >
-            <h2 className="text-sm font-bold tracking-wide text-gray-800 uppercase">
+            <h2 className="text-sm font-bold tracking-wide text-gray-800 uppercase dark:text-slate-200">
               Editar tema
             </h2>
-            <p className="mt-1 text-xs text-gray-500">Atualize as informações de {editing.name}.</p>
+            <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">Atualize as informações de {editing.name}.</p>
 
             <div className="mt-4 space-y-4">
               <div>
-                <label className="mb-1.5 block text-sm font-semibold text-gray-700">Nome</label>
+                <label className="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-slate-300">Nome</label>
                 <input
                   required
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200"
+              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-800 dark:focus:bg-slate-800"
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-sm font-semibold text-gray-700">Cor</label>
+                <label className="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-slate-300">Cor</label>
                 <div className="flex flex-wrap items-center gap-2">
                   {defaultColors.map((c) => (
                     <button
@@ -313,7 +313,7 @@ export default function AdminTemasPage() {
                       style={{ backgroundColor: c }}
                     />
                   ))}
-                  <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm text-gray-600">
+                  <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm text-gray-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
                     <input
                       type="color"
                       value={editColor}
@@ -327,7 +327,7 @@ export default function AdminTemasPage() {
             </div>
 
             {editError && (
-              <p className="mt-4 rounded-xl bg-red-50 px-3 py-2.5 text-sm text-red-700">
+              <p className="mt-4 rounded-xl bg-red-50 px-3 py-2.5 text-sm text-red-700 dark:bg-red-950/60 dark:text-red-300">
                 {editError}
               </p>
             )}
@@ -337,7 +337,7 @@ export default function AdminTemasPage() {
                 type="button"
                 onClick={() => setEditing(null)}
                 disabled={editSending}
-                className="rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-100 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-100 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 dark:text-slate-300 dark:hover:bg-slate-800"
               >
                 Cancelar
               </button>

@@ -24,6 +24,7 @@ export async function POST(request: Request) {
   const themeId = String(body.themeId ?? "");
   const tagsRaw = String(body.tags ?? "");
   const videoUrl = String(body.videoUrl ?? "").trim();
+  const thumbnailUrl = String(body.thumbnailUrl ?? "").trim() || null;
   const blobPathname = String(body.blobPathname ?? "").trim() || null;
 
   if (!title || !themeId) {
@@ -49,6 +50,7 @@ export async function POST(request: Request) {
       description,
       themeId,
       videoUrl,
+      thumbnailUrl,
       blobPathname,
       status: "READY",
       tags,

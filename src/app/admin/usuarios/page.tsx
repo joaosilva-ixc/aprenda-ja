@@ -19,9 +19,9 @@ const roleLabels: Record<User["role"], string> = {
 };
 
 const roleBadges: Record<User["role"], string> = {
-  MASTER: "bg-amber-100 text-amber-700",
-  ADMIN: "bg-indigo-100 text-indigo-700",
-  ALUNO: "bg-emerald-100 text-emerald-700",
+  MASTER: "bg-amber-100 text-amber-700 dark:bg-amber-950/70 dark:text-amber-300",
+  ADMIN: "bg-indigo-100 text-indigo-700 dark:bg-indigo-950/70 dark:text-indigo-300",
+  ALUNO: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/70 dark:text-emerald-300",
 };
 
 export default function AdminUsersPage() {
@@ -208,7 +208,7 @@ export default function AdminUsersPage() {
 
       <form
         onSubmit={handleCreate}
-        className="animate-fade-up mb-6 space-y-4 rounded-3xl bg-white p-6 shadow-2xl shadow-blue-900/20 [animation-delay:100ms]"
+        className="animate-fade-up mb-6 space-y-4 rounded-3xl bg-white p-6 shadow-2xl shadow-blue-900/20 dark:bg-slate-900 [animation-delay:100ms]"
       >
         <h2 className="text-sm font-bold tracking-wide text-gray-800 uppercase">
           Novo usuário
@@ -216,32 +216,32 @@ export default function AdminUsersPage() {
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label className="mb-1.5 block text-sm font-semibold text-gray-700">Nome</label>
+            <label className="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-slate-300">Nome</label>
             <input
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Ex.: Maria Souza"
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200"
+              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-800 dark:focus:bg-slate-800"
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-semibold text-gray-700">E-mail</label>
+            <label className="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-slate-300">E-mail</label>
             <input
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="maria@exemplo.com"
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200"
+              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-800 dark:focus:bg-slate-800"
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-semibold text-gray-700">Perfil</label>
+            <label className="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-slate-300">Perfil</label>
             <select
               value={role}
               onChange={(e) => setRole(e.target.value as User["role"])}
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200"
+              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-800 dark:focus:bg-slate-800"
             >
               <option value="ALUNO">Aluno</option>
               <option value="ADMIN">Administrador</option>
@@ -251,15 +251,15 @@ export default function AdminUsersPage() {
         </div>
 
         {createdUser && (
-          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
-            <p className="text-sm font-bold text-emerald-800">
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-800 dark:bg-emerald-950/50">
+            <p className="text-sm font-bold text-emerald-800 dark:text-emerald-200">
               Usuário criado com sucesso!
             </p>
-            <p className="mt-1 text-xs text-emerald-700">
+            <p className="mt-1 text-xs text-emerald-700 dark:text-emerald-300">
               {createdUser.name} · {createdUser.email}
             </p>
             <div className="mt-3 flex flex-wrap items-center gap-2">
-              <code className="rounded-lg bg-white px-3 py-1.5 font-mono text-sm font-bold text-gray-900 shadow-sm">
+              <code className="rounded-lg bg-white px-3 py-1.5 font-mono text-sm font-bold text-gray-900 shadow-sm dark:bg-slate-900 dark:text-slate-100">
                 {createdUser.temporaryPassword}
               </code>
               <button
@@ -270,7 +270,7 @@ export default function AdminUsersPage() {
                 Copiar senha
               </button>
             </div>
-            <p className="mt-2 text-xs text-emerald-700">
+            <p className="mt-2 text-xs text-emerald-700 dark:text-emerald-300">
               Senha temporária exibida apenas uma vez. No primeiro login, o usuário será
               obrigado a definir uma nova senha.
             </p>
@@ -278,7 +278,7 @@ export default function AdminUsersPage() {
         )}
 
         {error && (
-          <p className="rounded-xl bg-red-50 px-3 py-2.5 text-sm text-red-700">{error}</p>
+          <p className="rounded-xl bg-red-50 px-3 py-2.5 text-sm text-red-700 dark:bg-red-950/60 dark:text-red-300">{error}</p>
         )}
 
         <button
@@ -308,18 +308,18 @@ export default function AdminUsersPage() {
           {loading ? (
             <div className="h-24 animate-pulse rounded-2xl bg-white/40" />
           ) : users.length === 0 ? (
-            <p className="rounded-2xl border border-dashed border-white/40 bg-white/60 p-8 text-center text-sm text-gray-600">
+            <p className="rounded-2xl border border-dashed border-white/40 bg-white/60 p-8 text-center text-sm text-gray-600 dark:border-slate-600 dark:bg-slate-900/80 dark:text-slate-300">
               Nenhum usuário encontrado.
             </p>
           ) : (
             users.map((user) => (
               <div
                 key={user.id}
-                className="flex items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3 shadow-lg shadow-blue-900/10"
+                className="flex items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3 shadow-lg shadow-blue-900/10 dark:bg-slate-900"
               >
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-bold text-gray-900">{user.name}</p>
-                  <p className="truncate text-xs text-gray-500">{user.email}</p>
+                  <p className="truncate text-sm font-bold text-gray-900 dark:text-slate-100">{user.name}</p>
+                  <p className="truncate text-xs text-gray-500 dark:text-slate-400">{user.email}</p>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
                   <span
@@ -332,7 +332,7 @@ export default function AdminUsersPage() {
                   {user.role !== "MASTER" && (
                     <button
                       onClick={() => openEdit(user)}
-                      className="rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-600 transition hover:bg-blue-100 active:scale-95"
+                      className="rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-600 transition hover:bg-blue-100 active:scale-95 dark:bg-blue-950/70 dark:text-blue-300 dark:hover:bg-blue-900/60"
                     >
                       Editar
                     </button>
@@ -340,7 +340,7 @@ export default function AdminUsersPage() {
                   {user.role !== "MASTER" && user.id !== current?.id && (
                     <button
                       onClick={() => handleDelete(user)}
-                      className="rounded-lg bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-100 active:scale-95"
+                      className="rounded-lg bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-100 active:scale-95 dark:bg-red-950/60 dark:text-red-300 dark:hover:bg-red-900/60"
                     >
                       Excluir
                     </button>
@@ -360,41 +360,41 @@ export default function AdminUsersPage() {
           <form
             onSubmit={handleUpdate}
             onClick={(e) => e.stopPropagation()}
-            className="animate-fade-up w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl shadow-blue-900/30"
+            className="animate-fade-up w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl shadow-blue-900/30 dark:bg-slate-900"
           >
-            <h2 className="text-sm font-bold tracking-wide text-gray-800 uppercase">
+            <h2 className="text-sm font-bold tracking-wide text-gray-800 uppercase dark:text-slate-200">
               Editar usuário
             </h2>
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
               Atualize as informações de {editing.name}.
             </p>
 
             <div className="mt-4 space-y-4">
               <div>
-                <label className="mb-1.5 block text-sm font-semibold text-gray-700">Nome</label>
+                <label className="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-slate-300">Nome</label>
                 <input
                   required
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200"
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-800 dark:focus:bg-slate-800"
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-sm font-semibold text-gray-700">E-mail</label>
+                <label className="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-slate-300">E-mail</label>
                 <input
                   type="email"
                   required
                   value={editEmail}
                   onChange={(e) => setEditEmail(e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200"
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-800 dark:focus:bg-slate-800"
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-sm font-semibold text-gray-700">Perfil</label>
+                <label className="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-slate-300">Perfil</label>
                 <select
                   value={editRole}
                   onChange={(e) => setEditRole(e.target.value as User["role"])}
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200"
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-800 dark:focus:bg-slate-800"
                 >
                   <option value="ALUNO">Aluno</option>
                   <option value="ADMIN">Administrador</option>
@@ -402,7 +402,7 @@ export default function AdminUsersPage() {
                 </select>
               </div>
               <div>
-                <label className="mb-1.5 block text-sm font-semibold text-gray-700">
+                <label className="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-slate-300">
                   Nova senha{" "}
                   <span className="font-normal text-gray-400">(opcional — só para trocar)</span>
                 </label>
@@ -412,13 +412,13 @@ export default function AdminUsersPage() {
                   minLength={6}
                   onChange={(e) => setEditPassword(e.target.value)}
                   placeholder="deixe em branco para manter"
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200"
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-800 dark:focus:bg-slate-800"
                 />
               </div>
             </div>
 
             {editError && (
-              <p className="mt-4 rounded-xl bg-red-50 px-3 py-2.5 text-sm text-red-700">
+              <p className="mt-4 rounded-xl bg-red-50 px-3 py-2.5 text-sm text-red-700 dark:bg-red-950/60 dark:text-red-300">
                 {editError}
               </p>
             )}
@@ -428,7 +428,7 @@ export default function AdminUsersPage() {
                 type="button"
                 onClick={() => setEditing(null)}
                 disabled={editSending}
-                className="rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-100 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-100 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 dark:text-slate-300 dark:hover:bg-slate-800"
               >
                 Cancelar
               </button>

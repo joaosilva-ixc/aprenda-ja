@@ -28,7 +28,7 @@ export function UserMenu() {
   }, [pathname]);
 
   if (loading) {
-    return <div className="h-9 w-20 animate-pulse rounded-lg bg-white/30" />;
+    return <div className="h-9 w-20 animate-pulse rounded-lg bg-white/30 dark:bg-white/10" />;
   }
 
   if (!user) {
@@ -57,7 +57,7 @@ export function UserMenu() {
       {!isStaff && (
         <Link
           href="/painel"
-          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-blue-50 hover:text-blue-700"
+          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-blue-50 hover:text-blue-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-blue-300"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path
@@ -73,7 +73,7 @@ export function UserMenu() {
         <>
           <Link
             href="/admin"
-            className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-indigo-50 hover:text-indigo-700"
+            className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-indigo-50 hover:text-indigo-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-indigo-300"
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path
@@ -88,7 +88,7 @@ export function UserMenu() {
             <>
               <Link
                 href="/admin/aulas"
-                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-indigo-50 hover:text-indigo-700"
+                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-indigo-50 hover:text-indigo-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-indigo-300"
               >
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path
@@ -101,7 +101,7 @@ export function UserMenu() {
               </Link>
               <Link
                 href="/admin/temas"
-                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-indigo-50 hover:text-indigo-700"
+                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-indigo-50 hover:text-indigo-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-indigo-300"
               >
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path
@@ -116,7 +116,7 @@ export function UserMenu() {
           )}
           <Link
             href="/admin/usuarios"
-            className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-indigo-50 hover:text-indigo-700"
+            className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-indigo-50 hover:text-indigo-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-indigo-300"
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path
@@ -131,14 +131,14 @@ export function UserMenu() {
       )}
       <NotificationBell />
       <div className="hidden flex-col items-end leading-tight sm:flex">
-        <span className="max-w-[180px] truncate text-sm font-bold text-gray-800">{user.name}</span>
+        <span className="max-w-[180px] truncate text-sm font-bold text-gray-800 dark:text-slate-200">{user.name}</span>
         <span
           className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
             user.role === "MASTER"
-              ? "bg-amber-100 text-amber-700"
+              ? "bg-amber-100 text-amber-700 dark:bg-amber-950/70 dark:text-amber-300"
               : user.role === "ADMIN"
-                ? "bg-indigo-100 text-indigo-700"
-                : "bg-emerald-100 text-emerald-700"
+                ? "bg-indigo-100 text-indigo-700 dark:bg-indigo-950/70 dark:text-indigo-300"
+                : "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/70 dark:text-emerald-300"
           }`}
         >
           {user.role === "MASTER" ? "Master" : user.role === "ADMIN" ? "Admin" : "Aluno"}
@@ -152,7 +152,7 @@ export function UserMenu() {
         }}
         title="Sair"
         aria-label="Sair"
-        className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 transition hover:bg-red-50 hover:text-red-600"
+        className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 transition hover:bg-red-50 hover:text-red-600 dark:text-slate-400 dark:hover:bg-red-950/60 dark:hover:text-red-400"
       >
         <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path

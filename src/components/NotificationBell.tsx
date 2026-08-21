@@ -148,7 +148,7 @@ export function NotificationBell() {
         }}
         title="Notificações"
         aria-label="Notificações"
-        className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 transition hover:bg-blue-50 hover:text-blue-700"
+        className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 transition hover:bg-blue-50 hover:text-blue-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-blue-300"
       >
         <svg
           className="h-5 w-5"
@@ -171,11 +171,11 @@ export function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 z-50 mt-2 w-[22rem] max-w-[90vw] overflow-hidden rounded-2xl bg-white shadow-2xl shadow-blue-900/30 ring-1 ring-black/5">
-          <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
+        <div className="absolute right-0 z-50 mt-2 w-[22rem] max-w-[90vw] overflow-hidden rounded-2xl bg-white shadow-2xl shadow-blue-900/30 ring-1 ring-black/5 dark:bg-slate-900 dark:ring-white/10">
+          <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-slate-800">
             <div>
-              <h3 className="text-sm font-bold text-gray-900">Notificações</h3>
-              <p className="text-[11px] text-gray-500">
+              <h3 className="text-sm font-bold text-gray-900 dark:text-slate-100">Notificações</h3>
+              <p className="text-[11px] text-gray-500 dark:text-slate-400">
                 {unread > 0
                   ? `${unread} não lida(s)`
                   : "Você está em dia ✨"}
@@ -196,7 +196,7 @@ export function NotificationBell() {
                 type="button"
                 onClick={clearList}
                 disabled={busy}
-                className="rounded-lg bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-100 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-lg bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-100 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-red-950/60 dark:text-red-300 dark:hover:bg-red-900/60"
               >
                 Limpar lista
               </button>
@@ -205,16 +205,16 @@ export function NotificationBell() {
 
           <div className="max-h-80 overflow-y-auto">
             {items.length === 0 ? (
-              <p className="px-4 py-10 text-center text-sm text-gray-500">
+              <p className="px-4 py-10 text-center text-sm text-gray-500 dark:text-slate-400">
                 Nenhuma notificação por aqui.
               </p>
             ) : (
-              <ul className="divide-y divide-gray-100">
+              <ul className="divide-y divide-gray-100 dark:divide-slate-800">
                 {items.map((n) => (
                   <li
                     key={n.id}
                     className={`flex items-start justify-between gap-3 px-4 py-3 ${
-                      n.read ? "bg-white" : "bg-blue-50/60"
+                      n.read ? "" : "bg-blue-50/60 dark:bg-blue-950/40"
                     }`}
                   >
                     <div className="min-w-0">
@@ -228,13 +228,13 @@ export function NotificationBell() {
                           <span className="h-2 w-2 rounded-full bg-blue-500" title="Não lida" />
                         )}
                         {n.title && (
-                          <span className="truncate text-sm font-bold text-gray-900">
+                          <span className="truncate text-sm font-bold text-gray-900 dark:text-slate-100">
                             {n.title}
                           </span>
                         )}
                       </div>
-                      <p className="mt-1 line-clamp-3 text-xs text-gray-600">{n.message}</p>
-                      <p className="mt-1 text-[10px] font-medium text-gray-400">
+                      <p className="mt-1 line-clamp-3 text-xs text-gray-600 dark:text-slate-300">{n.message}</p>
+                      <p className="mt-1 text-[10px] font-medium text-gray-400 dark:text-slate-500">
                         {formatDate(n.createdAt)}
                       </p>
                     </div>
@@ -243,7 +243,7 @@ export function NotificationBell() {
                         type="button"
                         onClick={() => markRead(n.id)}
                         disabled={busy}
-                        className="shrink-0 rounded-lg px-2.5 py-1 text-[11px] font-semibold text-blue-600 transition hover:bg-blue-100 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+                        className="shrink-0 rounded-lg px-2.5 py-1 text-[11px] font-semibold text-blue-600 transition hover:bg-blue-100 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 dark:text-blue-400 dark:hover:bg-slate-800"
                       >
                         Marcar como lida
                       </button>

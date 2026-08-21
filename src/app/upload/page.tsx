@@ -23,6 +23,57 @@ function formatBytes(bytes: number) {
   return `${value.toFixed(1)} ${units[unit]}`;
 }
 
+function captureThumbnail(file: File): Promise<Blob | null> {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+    const video = document.createElement("video");
+    video.preload = "auto";
+    video.muted = true;
+    video.playsInline = true;
+    const cleanup = () => URL.revokeObjectURL(url);
+
+    video.onerror = () => {
+      cleanup();
+      resolve(null);
+    };
+    video.onloadeddata = () => {
+      try {
+        const target = Math.min(video.duration * 0.1 || 1, 3);
+        video.currentTime = Math.max(0.1, target);
+      } catch {
+        cleanup();
+        resolve(null);
+      }
+    };
+    video.onseeked = () => {
+      try {
+        const width = 640;
+        const height = Math.round(
+          width * (video.videoHeight / video.videoWidth),
+        );
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) throw new Error("sem contexto");
+        ctx.drawImage(video, 0, 0, width, height);
+        canvas.toBlob(
+          (blob) => {
+            cleanup();
+            resolve(blob);
+          },
+          "image/jpeg",
+          0.8,
+        );
+      } catch {
+        cleanup();
+        resolve(null);
+      }
+    };
+    video.src = url;
+  });
+}
+
 export default function UploadPage() {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -93,6 +144,22 @@ export default function UploadPage() {
         onUploadProgress: ({ percentage }) => setProgress(percentage),
       });
 
+      let thumbnailUrl: string | null = null;
+      const thumbBlob = await captureThumbnail(file);
+      if (thumbBlob) {
+        try {
+          const thumbName = `${file.name.replace(/\.[^.]+$/, "")}.jpg`;
+          const thumbResult = await upload(`thumbnails/${thumbName}`, thumbBlob, {
+            access: "public",
+            handleUploadUrl: "/api/blob/upload",
+            contentType: "image/jpeg",
+          });
+          thumbnailUrl = thumbResult.url;
+        } catch {
+          thumbnailUrl = null;
+        }
+      }
+
       const res = await fetch("/api/aulas", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -102,6 +169,7 @@ export default function UploadPage() {
           themeId,
           tags,
           videoUrl: blobResult.url,
+          thumbnailUrl,
           blobPathname: blobResult.pathname,
         }),
       });
@@ -123,7 +191,7 @@ export default function UploadPage() {
   if (!authChecked) {
     return (
       <main className="mx-auto flex w-full max-w-2xl flex-1 items-center justify-center px-4">
-        <div className="h-24 w-full max-w-sm animate-pulse rounded-2xl bg-white/40" />
+        <div className="h-24 w-full max-w-sm animate-pulse rounded-2xl bg-white/40 dark:bg-white/10" />
       </main>
     );
   }
@@ -147,15 +215,15 @@ export default function UploadPage() {
 
       <form
         onSubmit={handleSubmit}
-        className="animate-fade-up space-y-5 rounded-3xl bg-white p-6 shadow-2xl shadow-blue-900/20 [animation-delay:100ms] sm:p-8"
+        className="animate-fade-up space-y-5 rounded-3xl bg-white p-6 shadow-2xl shadow-blue-900/20 dark:bg-slate-900 [animation-delay:100ms] sm:p-8"
       >
         <div>
-          <label className="mb-1.5 block text-sm font-semibold text-gray-700">Tema</label>
+          <label className="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-slate-300">Tema</label>
           <select
             required
             value={themeId}
             onChange={(e) => setThemeId(e.target.value)}
-            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200"
+            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-800 dark:focus:bg-slate-800"
           >
             <option value="">Selecione…</option>
             {temas.map((t) => (
@@ -167,7 +235,7 @@ export default function UploadPage() {
         </div>
 
         <div>
-          <label className="mb-1.5 block text-sm font-semibold text-gray-700">
+          <label className="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-slate-300">
             Arquivo de vídeo
           </label>
           <input
@@ -175,7 +243,7 @@ export default function UploadPage() {
             type="file"
             accept="video/*"
             onChange={pickFile}
-            className="block w-full cursor-pointer rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-600 outline-none transition file:mr-3 file:border-0 file:bg-blue-600 file:px-4 file:py-2.5 file:text-sm file:font-semibold file:text-white hover:file:bg-blue-700"
+            className="block w-full cursor-pointer rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-600 outline-none transition file:mr-3 file:border-0 file:bg-blue-600 file:px-4 file:py-2.5 file:text-sm file:font-semibold file:text-white hover:file:bg-blue-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
           />
           {file && (
             <p className="mt-1.5 text-xs text-gray-500">
@@ -185,7 +253,7 @@ export default function UploadPage() {
         </div>
 
         <div>
-          <label className="mb-1.5 block text-sm font-semibold text-gray-700">
+          <label className="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-slate-300">
             Título da aula
           </label>
           <input
@@ -193,30 +261,30 @@ export default function UploadPage() {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Ex.: Configurando ramais no PABX"
-            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200"
+            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-800 dark:focus:bg-slate-800"
           />
         </div>
 
         <div>
-          <label className="mb-1.5 block text-sm font-semibold text-gray-700">Descrição</label>
+          <label className="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-slate-300">Descrição</label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={3}
             placeholder="Resumo do conteúdo da gravação…"
-            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200"
+            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-800 dark:focus:bg-slate-800"
           />
         </div>
 
         <div>
-          <label className="mb-1.5 block text-sm font-semibold text-gray-700">
+          <label className="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-slate-300">
             Tags <span className="font-normal text-gray-400">(separadas por vírgula)</span>
           </label>
           <input
             value={tags}
             onChange={(e) => setTags(e.target.value)}
             placeholder="ramal, fila, integração"
-            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200"
+            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-800 dark:focus:bg-slate-800"
           />
         </div>
 
@@ -226,7 +294,7 @@ export default function UploadPage() {
               <span>Enviando vídeo…</span>
               <span>{Math.round(progress)}%</span>
             </div>
-            <div className="h-2.5 w-full overflow-hidden rounded-full bg-gray-100">
+            <div className="h-2.5 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-slate-800">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 transition-all duration-300"
                 style={{ width: `${progress}%` }}
@@ -236,7 +304,7 @@ export default function UploadPage() {
         )}
 
         {error && (
-          <p className="rounded-xl bg-red-50 px-3 py-2.5 text-sm text-red-700">{error}</p>
+          <p className="rounded-xl bg-red-50 px-3 py-2.5 text-sm text-red-700 dark:bg-red-950/60 dark:text-red-300">{error}</p>
         )}
 
         <button

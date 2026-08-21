@@ -19,6 +19,7 @@ type Aula = {
   title: string;
   description: string;
   videoUrl: string;
+  thumbnailUrl?: string | null;
   status: string;
   tags: string[];
   createdAt: string;
@@ -119,7 +120,7 @@ export default function Home() {
   if (!authChecked) {
     return (
       <main className="mx-auto flex w-full max-w-6xl flex-1 items-center justify-center px-4">
-        <div className="h-24 w-full max-w-md animate-pulse rounded-2xl bg-white/40" />
+        <div className="h-24 w-full max-w-md animate-pulse rounded-2xl bg-white/40 dark:bg-white/10" />
       </main>
     );
   }
@@ -133,7 +134,7 @@ export default function Home() {
     <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-16">
       {/* Aviso global */}
       {announcement && (
-        <div className="animate-fade-up mt-4 flex items-center gap-3 rounded-2xl border border-amber-200/60 bg-amber-50/95 px-4 py-3 shadow-lg shadow-amber-900/10 backdrop-blur">
+        <div className="animate-fade-up mt-4 flex items-center gap-3 rounded-2xl border border-amber-200/60 bg-amber-50/95 px-4 py-3 shadow-lg shadow-amber-900/10 backdrop-blur dark:border-amber-500/20 dark:bg-amber-950/70">
           <svg
             className="h-5 w-5 shrink-0 text-amber-600"
             fill="none"
@@ -147,7 +148,7 @@ export default function Home() {
               d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"
             />
           </svg>
-          <p className="text-sm font-medium text-amber-900">{announcement}</p>
+          <p className="text-sm font-medium text-amber-900 dark:text-amber-200">{announcement}</p>
         </div>
       )}
 
@@ -215,7 +216,7 @@ export default function Home() {
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Buscar por título, descrição ou tag…"
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 py-2.5 pr-4 pl-10 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200"
+              className="w-full rounded-xl border border-gray-200 bg-gray-50 py-2.5 pr-4 pl-10 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-800 dark:focus:bg-slate-800"
             />
           </div>
           <div className="flex flex-wrap gap-2">
@@ -224,7 +225,7 @@ export default function Home() {
               className={`rounded-full px-4 py-2 text-sm font-semibold transition active:scale-95 ${
                 themeId === ""
                   ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/30"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
               }`}
             >
               Todos
@@ -236,7 +237,7 @@ export default function Home() {
                 className={`rounded-full px-4 py-2 text-sm font-semibold transition active:scale-95 ${
                   themeId === t.id
                     ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/30"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
                 }`}
               >
                 <span
@@ -257,15 +258,15 @@ export default function Home() {
             {Array.from({ length: 6 }).map((_, i) => (
               <div
                 key={i}
-                className="h-64 animate-pulse rounded-2xl border border-white/10 bg-white/40"
+                className="h-64 animate-pulse rounded-2xl border border-white/10 bg-white/40 dark:bg-white/10"
               />
             ))}
           </div>
         ) : byTheme.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-white/40 bg-white/60 p-12 text-center backdrop-blur">
+          <div className="rounded-2xl border border-dashed border-white/40 bg-white/60 p-12 text-center backdrop-blur dark:border-slate-600 dark:bg-slate-900/80">
             <p className="text-5xl">🎓</p>
-            <p className="mt-3 font-semibold text-gray-800">Nenhuma aula encontrada</p>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-3 font-semibold text-gray-800 dark:text-slate-200">Nenhuma aula encontrada</p>
+            <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
               Tente ajustar a busca ou o filtro de tema.
             </p>
           </div>
@@ -374,7 +375,7 @@ function AulaCard({
 
   const content = (
     <article
-      className="card-hover animate-fade-up group flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl bg-white shadow-lg shadow-blue-900/10 [animation-delay:0ms]"
+        className="card-hover animate-fade-up group flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl bg-white shadow-lg shadow-blue-900/10 dark:bg-slate-900 [animation-delay:0ms]"
       style={{ animationDelay: `${delay}ms` }}
     >
       {/* Thumbnail */}
@@ -382,6 +383,15 @@ function AulaCard({
         className="relative flex aspect-video items-center justify-center overflow-hidden"
         style={{ backgroundColor: aula.theme.color }}
       >
+        {aula.thumbnailUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={aula.thumbnailUrl}
+            alt=""
+            loading="lazy"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-black/20 transition duration-300 group-hover:from-black/60 group-hover:to-transparent" />
         <span className="absolute inset-0 flex items-center justify-center">
           {canPlay ? (
@@ -447,17 +457,17 @@ function AulaCard({
 
       {/* Corpo */}
       <div className="flex flex-1 flex-col p-4">
-        <h3 className="line-clamp-2 font-bold leading-snug text-gray-900 transition group-hover:text-blue-700">
+        <h3 className="line-clamp-2 font-bold leading-snug text-gray-900 transition group-hover:text-blue-700 dark:text-slate-100 dark:group-hover:text-blue-300">
           {aula.title}
         </h3>
-        <p className="mt-1.5 line-clamp-2 flex-1 text-sm text-gray-500">{aula.description}</p>
+        <p className="mt-1.5 line-clamp-2 flex-1 text-sm text-gray-500 dark:text-slate-400">{aula.description}</p>
 
         {hasTags && (
           <div className="mt-3 flex flex-wrap gap-1.5">
             {aula.tags.slice(0, 3).map((tag) => (
               <span
                 key={tag}
-                className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-700"
+                className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-700 dark:bg-blue-950/70 dark:text-blue-300"
               >
                 #{tag}
               </span>
@@ -465,8 +475,8 @@ function AulaCard({
           </div>
         )}
 
-        <div className="mt-4 flex items-center justify-between border-t border-gray-100 pt-3">
-          <span className="flex items-center gap-1.5 text-xs text-gray-400">
+        <div className="mt-4 flex items-center justify-between border-t border-gray-100 pt-3 dark:border-slate-800">
+          <span className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-slate-500">
             <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path
                 strokeLinecap="round"
@@ -488,9 +498,9 @@ function AulaCard({
             className={`inline-flex items-center gap-1 text-sm font-semibold transition ${
               canPlay
                 ? aula.completed
-                  ? "text-emerald-600"
-                  : "text-blue-600 group-hover:gap-2"
-                : "text-gray-300"
+                  ? "text-emerald-600 dark:text-emerald-400"
+                  : "text-blue-600 group-hover:gap-2 dark:text-blue-400"
+                : "text-gray-300 dark:text-slate-600"
             }`}
           >
             {!canPlay ? "Indisponível" : aula.completed ? "Concluída" : "Assistir"}

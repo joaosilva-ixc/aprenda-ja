@@ -125,7 +125,7 @@ export default function AdminDashboardPage() {
   if (loading) {
     return (
       <main className="mx-auto flex w-full max-w-6xl flex-1 items-center justify-center px-4">
-        <div className="h-64 w-full max-w-md animate-pulse rounded-3xl bg-white/40" />
+        <div className="h-64 w-full max-w-md animate-pulse rounded-3xl bg-white/40 dark:bg-white/10" />
       </main>
     );
   }
@@ -251,12 +251,12 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Evolução de acessos */}
-      <section className="animate-fade-up mb-6 rounded-3xl bg-white p-6 shadow-2xl shadow-blue-900/20 [animation-delay:125ms]">
-        <h2 className="text-sm font-bold tracking-wide text-gray-800 uppercase">
+      <section className="animate-fade-up mb-6 rounded-3xl bg-white p-6 shadow-2xl shadow-blue-900/20 dark:bg-slate-900 [animation-delay:125ms]">
+        <h2 className="text-sm font-bold tracking-wide text-gray-800 uppercase dark:text-slate-200">
           Acessos nos últimos 14 dias
         </h2>
         {data.trend.every((t) => t.count === 0) ? (
-          <p className="mt-6 rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-sm text-gray-500">
+          <p className="mt-6 rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-sm text-gray-500 dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-400">
             Sem acessos registrados nos últimos 14 dias.
           </p>
         ) : (
@@ -272,7 +272,7 @@ export default function AdminDashboardPage() {
                       title={`${point.label}: ${point.count} acesso(s)`}
                     />
                   </div>
-                  <span className="text-[9px] font-semibold text-gray-400 sm:text-[10px]">
+                  <span className="text-[9px] font-semibold text-gray-400 sm:text-[10px] dark:text-slate-500">
                     {point.label}
                   </span>
                 </div>
@@ -284,12 +284,12 @@ export default function AdminDashboardPage() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Vídeos mais acessados */}
-        <section className="animate-fade-up rounded-3xl bg-white p-6 shadow-2xl shadow-blue-900/20 [animation-delay:150ms]">
-          <h2 className="text-sm font-bold tracking-wide text-gray-800 uppercase">
+        <section className="animate-fade-up rounded-3xl bg-white p-6 shadow-2xl shadow-blue-900/20 dark:bg-slate-900 [animation-delay:150ms]">
+          <h2 className="text-sm font-bold tracking-wide text-gray-800 uppercase dark:text-slate-200">
             Vídeos mais acessados
           </h2>
           {!data?.topVideos.length ? (
-            <p className="mt-6 rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-sm text-gray-500">
+            <p className="mt-6 rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-sm text-gray-500 dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-400">
               Nenhuma visualização registrada ainda.
             </p>
           ) : (
@@ -297,13 +297,13 @@ export default function AdminDashboardPage() {
               {data.topVideos.map((video, i) => (
                 <li key={video.id}>
                   <div className="mb-1 flex items-center justify-between gap-3">
-                    <span className="flex min-w-0 items-center gap-2 text-sm font-semibold text-gray-800">
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-50 text-xs font-bold text-blue-700">
+                    <span className="flex min-w-0 items-center gap-2 text-sm font-semibold text-gray-800 dark:text-slate-200">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-50 text-xs font-bold text-blue-700 dark:bg-blue-950/70 dark:text-blue-300">
                         {i + 1}
                       </span>
                       <span className="truncate">{video.title}</span>
                     </span>
-                    <span className="shrink-0 text-xs font-bold text-gray-500">
+                    <span className="shrink-0 text-xs font-bold text-gray-500 dark:text-slate-400">
                       {video.viewCount} visualização{video.viewCount === 1 ? "" : "ões"}
                     </span>
                   </div>
@@ -320,12 +320,12 @@ export default function AdminDashboardPage() {
         </section>
 
         {/* Percentual por assunto */}
-        <section className="animate-fade-up rounded-3xl bg-white p-6 shadow-2xl shadow-blue-900/20 [animation-delay:200ms]">
-          <h2 className="text-sm font-bold tracking-wide text-gray-800 uppercase">
+        <section className="animate-fade-up rounded-3xl bg-white p-6 shadow-2xl shadow-blue-900/20 dark:bg-slate-900 [animation-delay:200ms]">
+          <h2 className="text-sm font-bold tracking-wide text-gray-800 uppercase dark:text-slate-200">
             Treinamentos por assunto
           </h2>
           {!hasViews ? (
-            <p className="mt-6 rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-sm text-gray-500">
+            <p className="mt-6 rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-sm text-gray-500 dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-400">
               Sem visualizações para calcular o percentual.
             </p>
           ) : (
@@ -335,12 +335,12 @@ export default function AdminDashboardPage() {
                   className="h-full w-full rounded-full shadow-inner"
                   style={{ background: donutBg }}
                 />
-                <div className="absolute inset-5 flex items-center justify-center rounded-full bg-white shadow-inner">
+                <div className="absolute inset-5 flex items-center justify-center rounded-full bg-white shadow-inner dark:bg-slate-900">
                   <div className="text-center">
-                    <p className="text-2xl font-extrabold text-gray-900">
+                    <p className="text-2xl font-extrabold text-gray-900 dark:text-slate-100">
                       {summary?.totalViews ?? 0}
                     </p>
-                    <p className="text-[10px] font-medium text-gray-400">visualizações</p>
+                    <p className="text-[10px] font-medium text-gray-400 dark:text-slate-500">visualizações</p>
                   </div>
                 </div>
               </div>
@@ -350,14 +350,14 @@ export default function AdminDashboardPage() {
                   .sort((a, b) => b.views - a.views)
                   .map((t) => (
                     <li key={t.themeId} className="flex items-center justify-between gap-3">
-                      <span className="flex min-w-0 items-center gap-2 text-sm text-gray-700">
+                      <span className="flex min-w-0 items-center gap-2 text-sm text-gray-700 dark:text-slate-300">
                         <span
                           className="h-3 w-3 shrink-0 rounded-full"
                           style={{ backgroundColor: t.color }}
                         />
                         <span className="truncate font-medium">{t.name}</span>
                       </span>
-                      <span className="shrink-0 text-xs font-bold text-gray-500">
+                      <span className="shrink-0 text-xs font-bold text-gray-500 dark:text-slate-400">
                         {t.percent}%
                       </span>
                     </li>
@@ -369,26 +369,26 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Último acesso dos alunos */}
-      <section className="animate-fade-up mt-6 rounded-3xl bg-white p-6 shadow-2xl shadow-blue-900/20 [animation-delay:250ms]">
-        <h2 className="text-sm font-bold tracking-wide text-gray-800 uppercase">
+      <section className="animate-fade-up mt-6 rounded-3xl bg-white p-6 shadow-2xl shadow-blue-900/20 dark:bg-slate-900 [animation-delay:250ms]">
+        <h2 className="text-sm font-bold tracking-wide text-gray-800 uppercase dark:text-slate-200">
 Último acesso dos usuários
         </h2>
         {!data?.lastAccess.length ? (
-          <p className="mt-6 rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-sm text-gray-500">
+          <p className="mt-6 rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-sm text-gray-500 dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-400">
             Nenhum usuário acessou a plataforma ainda.
           </p>
         ) : (
-          <ul className="mt-5 divide-y divide-gray-100">
+          <ul className="mt-5 divide-y divide-gray-100 dark:divide-slate-800">
             {data.lastAccess.map((student) => (
               <li
                 key={student.id}
                 className="flex flex-wrap items-center justify-between gap-2 py-3"
               >
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-bold text-gray-900">{student.name}</p>
-                  <p className="truncate text-xs text-gray-500">{student.email}</p>
+                  <p className="truncate text-sm font-bold text-gray-900 dark:text-slate-100">{student.name}</p>
+                  <p className="truncate text-xs text-gray-500 dark:text-slate-400">{student.email}</p>
                 </div>
-                <span className="shrink-0 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                <span className="shrink-0 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-950/70 dark:text-emerald-300">
                   {formatDate(student.lastAccessAt)}
                 </span>
               </li>
@@ -398,17 +398,17 @@ export default function AdminDashboardPage() {
       </section>
 
       {/* Engajamento dos alunos */}
-      <section className="animate-fade-up mt-6 rounded-3xl bg-white p-6 shadow-2xl shadow-blue-900/20 [animation-delay:300ms]">
+      <section className="animate-fade-up mt-6 rounded-3xl bg-white p-6 shadow-2xl shadow-blue-900/20 dark:bg-slate-900 [animation-delay:300ms]">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-sm font-bold tracking-wide text-gray-800 uppercase">
+          <h2 className="text-sm font-bold tracking-wide text-gray-800 uppercase dark:text-slate-200">
 Engajamento dos usuários
           </h2>
-          <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-700">
+          <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-700 dark:bg-blue-950/70 dark:text-blue-300">
             {data.engagementTotal} usuário(s) com atividade
           </span>
         </div>
         {!data.engagement.length ? (
-          <p className="mt-6 rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-sm text-gray-500">
+          <p className="mt-6 rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-sm text-gray-500 dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-400">
             Nenhum usuário com progresso ou streak registrado ainda.
           </p>
         ) : (
@@ -416,31 +416,31 @@ Engajamento dos usuários
             {data.engagement.map((student) => (
               <div
                 key={student.id}
-                className="rounded-2xl border border-gray-100 bg-gray-50/60 p-4"
+                className="rounded-2xl border border-gray-100 bg-gray-50/60 p-4 dark:border-slate-800 dark:bg-slate-800/40"
               >
                 <div className="flex items-center justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-bold text-gray-900">{student.name}</p>
-                    <p className="truncate text-xs text-gray-500">{student.email}</p>
+                    <p className="truncate text-sm font-bold text-gray-900 dark:text-slate-100">{student.name}</p>
+                    <p className="truncate text-xs text-gray-500 dark:text-slate-400">{student.email}</p>
                   </div>
-                  <span className="shrink-0 rounded-full bg-indigo-50 px-2.5 py-1 text-[11px] font-bold text-indigo-700">
+                  <span className="shrink-0 rounded-full bg-indigo-50 px-2.5 py-1 text-[11px] font-bold text-indigo-700 dark:bg-indigo-950/70 dark:text-indigo-300">
                     {student.percentual}%
                   </span>
                 </div>
-                <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-gray-200">
+                <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-slate-700">
                   <div
                     className="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-600"
                     style={{ width: `${student.percentual}%` }}
                   />
                 </div>
-                <div className="mt-3 flex flex-wrap gap-2 text-[11px] font-semibold text-gray-600">
-                  <span className="rounded-full bg-white px-2 py-1 shadow-sm">
+                <div className="mt-3 flex flex-wrap gap-2 text-[11px] font-semibold text-gray-600 dark:text-slate-300">
+                  <span className="rounded-full bg-white px-2 py-1 shadow-sm dark:bg-slate-900">
                     ✓ {student.completed} concluída(s)
                   </span>
-                  <span className="rounded-full bg-white px-2 py-1 shadow-sm">
+                  <span className="rounded-full bg-white px-2 py-1 shadow-sm dark:bg-slate-900">
                     ★ {student.favorites} favorita(s)
                   </span>
-                  <span className="rounded-full bg-white px-2 py-1 shadow-sm">
+                  <span className="rounded-full bg-white px-2 py-1 shadow-sm dark:bg-slate-900">
                     🔥 {student.streakCount} dia(s) seguidos
                   </span>
                 </div>

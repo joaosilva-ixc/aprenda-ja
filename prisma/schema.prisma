@@ -45,6 +45,7 @@ model Aula {
   themeId      String
   theme        Theme       @relation(fields: [themeId], references: [id], onDelete: Cascade)
   videoUrl     String
+  thumbnailUrl String?
   blobPathname String?     @unique
   durationSec  Int?
   status       VideoStatus @default(READY)
