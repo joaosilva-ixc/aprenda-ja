@@ -7,7 +7,7 @@ const CSP_DIRECTIVES = [
   "font-src 'self' https://fonts.gstatic.com",
   "img-src 'self' blob: data: https://*.public.blob.vercel-storage.com",
   "media-src 'self' blob: https://*.public.blob.vercel-storage.com https://*.private.blob.vercel-storage.com",
-  "connect-src 'self' https://*.public.blob.vercel-storage.com https://*.private.blob.vercel-storage.com",
+  "connect-src 'self' https://vercel.com/api/blob* https://*.public.blob.vercel-storage.com https://*.private.blob.vercel-storage.com",
   "frame-ancestors 'none'",
   "object-src 'none'",
   "base-uri 'self'",
