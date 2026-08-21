@@ -74,9 +74,23 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               href="https://central-opasuite.ixcsoft.com.br/"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs font-medium text-blue-100/70 transition hover:text-white"
+              aria-label="Central de Ajuda do Opa"
+              title="Central de Ajuda do Opa"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-blue-100/70 ring-1 ring-white/10 transition hover:scale-110 hover:bg-white/10 hover:text-white"
             >
-              Central de Ajuda do Opa
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z"
+                />
+              </svg>
             </a>
           </div>
         </footer>
