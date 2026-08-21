@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireMaster, AuthError } from "@/lib/auth";
+import { createAnnouncementSchema, parseBody } from "@/lib/validation";
 import { AnnouncementType } from "@/generated/prisma/enums";
 
 export const runtime = "nodejs";
-
-const VALID_TYPES: AnnouncementType[] = Object.values(AnnouncementType);
 
 export async function GET() {
   try {
@@ -45,26 +44,13 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json().catch(() => null);
-  if (!body) {
-    return NextResponse.json({ error: "Corpo inválido" }, { status: 400 });
+  const parsed = parseBody(createAnnouncementSchema, body);
+  if (!parsed.ok) {
+    return NextResponse.json({ error: parsed.error }, { status: 400 });
   }
-
-  const message = String(body.message ?? "").trim();
-  const title = body.title === undefined ? null : String(body.title ?? "").trim() || null;
-  const type = VALID_TYPES.includes(body.type) ? body.type : "AVISO";
-
-  if (!message) {
-    return NextResponse.json(
-      { error: "A mensagem do aviso é obrigatória" },
-      { status: 400 },
-    );
-  }
-  if (message.length > 1200) {
-    return NextResponse.json(
-      { error: "A mensagem do aviso deve ter no máximo 1200 caracteres" },
-      { status: 400 },
-    );
-  }
+  const { message } = parsed.data;
+  const title = parsed.data.title || null;
+  const type = parsed.data.type as AnnouncementType;
 
   const announcement = await prisma.announcement.create({
     data: { title, message, type },

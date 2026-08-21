@@ -6,6 +6,7 @@ import {
   generateTemporaryPassword,
   AuthError,
 } from "@/lib/auth";
+import { createUserSchema, parseBody } from "@/lib/validation";
 
 export const runtime = "nodejs";
 
@@ -55,33 +56,23 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json().catch(() => null);
-  if (!body) {
-    return NextResponse.json({ error: "Corpo inválido" }, { status: 400 });
+  const parsed = parseBody(createUserSchema, body);
+  if (!parsed.ok) {
+    return NextResponse.json({ error: parsed.error }, { status: 400 });
   }
-
-  const name = String(body.name ?? "").trim();
-  const email = String(body.email ?? "").trim().toLowerCase();
-  const requestedRole = String(body.role ?? "ALUNO");
+  const { name, email } = parsed.data;
+  const requestedRole = parsed.data.role;
   const isMaster = actor.role === "MASTER";
-  const role =
-    requestedRole === "MASTER" && isMaster
-      ? "MASTER"
-      : requestedRole === "ADMIN"
-        ? "ADMIN"
-        : "ALUNO";
 
-  if (requestedRole === "MASTER" && !isMaster) {
-    return NextResponse.json(
-      { error: "Apenas o acesso master pode conceder o perfil master" },
-      { status: 403 },
-    );
-  }
-
-  if (!name || !email) {
-    return NextResponse.json(
-      { error: "Nome e e-mail são obrigatórios" },
-      { status: 400 },
-    );
+  let role: "MASTER" | "ADMIN" | "ALUNO" = "ALUNO";
+  if (requestedRole !== "ALUNO") {
+    if (!isMaster) {
+      return NextResponse.json(
+        { error: "Apenas o acesso master pode criar contas de staff" },
+        { status: 403 },
+      );
+    }
+    role = requestedRole;
   }
 
   const existing = await prisma.user.findUnique({ where: { email } });

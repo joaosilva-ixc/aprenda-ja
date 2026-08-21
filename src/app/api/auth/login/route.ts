@@ -1,34 +1,52 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyPassword, createSession } from "@/lib/auth";
+import { getClientIp, rateLimit } from "@/lib/rate-limit";
+import { loginSchema, parseBody } from "@/lib/validation";
 
 export const runtime = "nodejs";
 
+const DUMMY_HASH = "$2a$12$C6UzMDM.H6dfI/f/IKcEe.WvJ8sJcVLGVGGRIvbTQ0zJBpVMHqQ4y";
+
 export async function POST(request: Request) {
-  const body = await request.json().catch(() => null);
-  if (!body) {
-    return NextResponse.json({ error: "Corpo inválido" }, { status: 400 });
+  const ip = getClientIp(request);
+
+  const ipLimit = rateLimit(`login:ip:${ip}`, { limit: 10, windowMs: 60_000 });
+  if (!ipLimit.ok) {
+    return NextResponse.json(
+      { error: "Muitas tentativas. Tente novamente mais tarde." },
+      { status: 429, headers: { "Retry-After": String(ipLimit.retryAfterSec) } },
+    );
   }
 
-  const email = String(body.email ?? "").trim().toLowerCase();
-  const password = String(body.password ?? "");
+  const body = await request.json().catch(() => null);
+  const parsed = parseBody(loginSchema, body);
+  if (!parsed.ok) {
+    return NextResponse.json({ error: parsed.error }, { status: 400 });
+  }
+  const { email, password } = parsed.data;
 
-  if (!email || !password) {
+  const emailLimit = rateLimit(`login:email:${email}`, {
+    limit: 5,
+    windowMs: 5 * 60_000,
+  });
+  if (!emailLimit.ok) {
     return NextResponse.json(
-      { error: "Informe e-mail e senha" },
-      { status: 400 },
+      { error: "Muitas tentativas para esta conta. Aguarde alguns minutos." },
+      { status: 429, headers: { "Retry-After": String(emailLimit.retryAfterSec) } },
     );
   }
 
   const user = await prisma.user.findUnique({ where: { email } });
-  if (!user || !(await verifyPassword(password, user.passwordHash))) {
+  const passwordOk = await verifyPassword(password, user?.passwordHash ?? DUMMY_HASH);
+  if (!user || !passwordOk) {
     return NextResponse.json(
       { error: "E-mail ou senha inválidos" },
       { status: 401 },
     );
   }
 
-  await createSession({ id: user.id, role: user.role });
+  await createSession(user);
 
   await prisma.user.update({
     where: { id: user.id },

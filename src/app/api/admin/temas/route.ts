@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { AuthError, requireMaster } from "@/lib/auth";
+import { createThemeSchema, parseBody } from "@/lib/validation";
 
 export const runtime = "nodejs";
 
@@ -42,17 +43,11 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json().catch(() => null);
-  if (!body) {
-    return NextResponse.json({ error: "Corpo inválido" }, { status: 400 });
+  const parsed = parseBody(createThemeSchema, body);
+  if (!parsed.ok) {
+    return NextResponse.json({ error: parsed.error }, { status: 400 });
   }
-
-  const name = String(body.name ?? "").trim();
-  const color = String(body.color ?? "").trim() || "#2563eb";
-  const icon = String(body.icon ?? "").trim() || "book-open";
-
-  if (!name) {
-    return NextResponse.json({ error: "O nome do tema é obrigatório" }, { status: 400 });
-  }
+  const { name, color, icon } = parsed.data;
 
   const slug = slugify(name);
   if (!slug) {

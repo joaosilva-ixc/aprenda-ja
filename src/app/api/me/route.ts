@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser, AuthError } from "@/lib/auth";
+import { updateProfileSchema, parseBody } from "@/lib/validation";
 
 export const runtime = "nodejs";
 
@@ -16,24 +17,13 @@ export async function PATCH(request: Request) {
   }
 
   const body = await request.json().catch(() => null);
-  if (!body) {
-    return NextResponse.json({ error: "Corpo inválido" }, { status: 400 });
+  const parsed = parseBody(updateProfileSchema, body);
+  if (!parsed.ok) {
+    return NextResponse.json({ error: parsed.error }, { status: 400 });
   }
-
-  const name = body.name === undefined ? undefined : String(body.name ?? "").trim();
-  const email =
-    body.email === undefined
-      ? undefined
-      : String(body.email ?? "").trim().toLowerCase();
-
-  if (name !== undefined && !name) {
-    return NextResponse.json({ error: "O nome não pode ficar vazio" }, { status: 400 });
-  }
+  const { name, email } = parsed.data;
 
   if (email !== undefined) {
-    if (!email) {
-      return NextResponse.json({ error: "O e-mail não pode ficar vazio" }, { status: 400 });
-    }
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing && existing.id !== user.id) {
       return NextResponse.json(

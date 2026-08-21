@@ -29,7 +29,7 @@ function getSecret() {
 }
 
 export function hashPassword(password: string) {
-  return bcrypt.hash(password, 10);
+  return bcrypt.hash(password, 12);
 }
 
 export function verifyPassword(password: string, hash: string) {
@@ -39,9 +39,11 @@ export function verifyPassword(password: string, hash: string) {
 export async function createSession(user: {
   id: string;
   role: UserRole;
+  tokenVersion: number;
 }) {
   const token = await new SignJWT({
     role: user.role,
+    ver: user.tokenVersion,
   })
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(user.id)
@@ -79,6 +81,8 @@ export async function getSessionUser() {
     const { payload } = await jwtVerify(token, getSecret());
     if (!payload.sub) return null;
     const user = await prisma.user.findUnique({ where: { id: payload.sub } });
+    if (!user) return null;
+    if (payload.ver !== user.tokenVersion) return null;
     return user;
   } catch {
     return null;

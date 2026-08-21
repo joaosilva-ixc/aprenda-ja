@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireMaster, AuthError } from "@/lib/auth";
+import { updateAulaSchema, parseBody } from "@/lib/validation";
 import { Prisma } from "@/generated/prisma/client";
 import { VideoStatus } from "@/generated/prisma/enums";
 
 export const runtime = "nodejs";
-
-const VALID_STATUSES: VideoStatus[] = Object.values(VideoStatus);
 
 export async function PATCH(
   request: Request,
@@ -28,33 +27,17 @@ export async function PATCH(
   }
 
   const body = await request.json().catch(() => null);
-  if (!body) {
-    return NextResponse.json({ error: "Corpo inválido" }, { status: 400 });
+  const parsed = parseBody(updateAulaSchema, body);
+  if (!parsed.ok) {
+    return NextResponse.json({ error: parsed.error }, { status: 400 });
   }
-
-  const title = body.title === undefined ? undefined : String(body.title ?? "").trim();
-  const description =
-    body.description === undefined ? undefined : String(body.description ?? "").trim();
-  const themeId = body.themeId === undefined ? undefined : String(body.themeId ?? "");
-  const tagsRaw = body.tags === undefined ? undefined : String(body.tags ?? "");
-  const status = body.status === undefined ? undefined : String(body.status ?? "");
-
-  if (title !== undefined && !title) {
-    return NextResponse.json({ error: "O título não pode ficar vazio" }, { status: 400 });
-  }
+  const { title, description, themeId, tags: tagsRaw, status } = parsed.data;
 
   if (themeId !== undefined) {
     const theme = await prisma.theme.findUnique({ where: { id: themeId } });
     if (!theme) {
       return NextResponse.json({ error: "Tema não encontrado" }, { status: 400 });
     }
-  }
-
-  if (status !== undefined && !VALID_STATUSES.includes(status as VideoStatus)) {
-    return NextResponse.json(
-      { error: "Status inválido" },
-      { status: 400 },
-    );
   }
 
   const tags =

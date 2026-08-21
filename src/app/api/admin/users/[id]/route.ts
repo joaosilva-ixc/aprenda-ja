@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin, hashPassword, AuthError } from "@/lib/auth";
+import { updateUserSchema, parseBody } from "@/lib/validation";
 
 export const runtime = "nodejs";
 
@@ -25,46 +26,21 @@ export async function PATCH(
   }
 
   const body = await request.json().catch(() => null);
-  if (!body) {
-    return NextResponse.json({ error: "Corpo inválido" }, { status: 400 });
+  const parsed = parseBody(updateUserSchema, body);
+  if (!parsed.ok) {
+    return NextResponse.json({ error: parsed.error }, { status: 400 });
   }
-
-  const name = body.name === undefined ? undefined : String(body.name ?? "").trim();
-  const email =
-    body.email === undefined
-      ? undefined
-      : String(body.email ?? "").trim().toLowerCase();
+  const { name, email, role, password } = parsed.data;
   const isMaster = actor.role === "MASTER";
-  const requestedRole = body.role === undefined ? undefined : String(body.role);
-  let role: "MASTER" | "ADMIN" | "ALUNO" | undefined;
-  if (requestedRole !== undefined) {
-    if (requestedRole === "MASTER") {
-      if (!isMaster) {
-        return NextResponse.json(
-          { error: "Apenas o acesso master pode conceder o perfil master" },
-          { status: 403 },
-        );
-      }
-      role = "MASTER";
-    } else if (requestedRole === "ADMIN") {
-      role = "ADMIN";
-    } else if (requestedRole === "ALUNO") {
-      role = "ALUNO";
-    }
-  }
-  const password = body.password === undefined ? undefined : String(body.password ?? "");
 
-  if (name !== undefined && !name) {
-    return NextResponse.json({ error: "O nome não pode ficar vazio" }, { status: 400 });
+  if (role !== undefined && role !== "ALUNO" && !isMaster) {
+    return NextResponse.json(
+      { error: "Apenas o acesso master pode atribuir perfis de staff" },
+      { status: 403 },
+    );
   }
 
   if (email !== undefined) {
-    if (!email) {
-      return NextResponse.json(
-        { error: "O e-mail não pode ficar vazio" },
-        { status: 400 },
-      );
-    }
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing && existing.id !== id) {
       return NextResponse.json(
@@ -72,13 +48,6 @@ export async function PATCH(
         { status: 409 },
       );
     }
-  }
-
-  if (password !== undefined && password && password.length < 6) {
-    return NextResponse.json(
-      { error: "A senha deve ter pelo menos 6 caracteres" },
-      { status: 400 },
-    );
   }
 
   if (user.role === "MASTER" && !isMaster) {
@@ -102,7 +71,11 @@ export async function PATCH(
       ...(email !== undefined ? { email } : {}),
       ...(role !== undefined ? { role } : {}),
       ...(password
-        ? { passwordHash: await hashPassword(password), mustChangePassword: true }
+        ? {
+            passwordHash: await hashPassword(password),
+            mustChangePassword: true,
+            tokenVersion: { increment: 1 },
+          }
         : {}),
     },
   });

@@ -1,6 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireUser, verifyPassword, hashPassword, AuthError } from "@/lib/auth";
+import {
+  requireUser,
+  verifyPassword,
+  hashPassword,
+  createSession,
+  AuthError,
+} from "@/lib/auth";
+import { getClientIp, rateLimit } from "@/lib/rate-limit";
+import { changePasswordSchema, parseBody } from "@/lib/validation";
 
 export const runtime = "nodejs";
 
@@ -15,38 +23,40 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Erro interno" }, { status: 500 });
   }
 
+  const ipLimit = rateLimit(`password:${getClientIp(request)}`, {
+    limit: 5,
+    windowMs: 60_000,
+  });
+  if (!ipLimit.ok) {
+    return NextResponse.json(
+      { error: "Muitas tentativas. Tente novamente mais tarde." },
+      { status: 429, headers: { "Retry-After": String(ipLimit.retryAfterSec) } },
+    );
+  }
+
   const body = await request.json().catch(() => null);
-  if (!body) {
-    return NextResponse.json({ error: "Corpo inválido" }, { status: 400 });
+  const parsed = parseBody(changePasswordSchema, body);
+  if (!parsed.ok) {
+    return NextResponse.json({ error: parsed.error }, { status: 400 });
   }
 
-  const currentPassword = String(body.currentPassword ?? "");
-  const newPassword = String(body.newPassword ?? "");
-
-  if (!currentPassword || !newPassword) {
-    return NextResponse.json(
-      { error: "Informe a senha atual e a nova senha" },
-      { status: 400 },
-    );
-  }
-  if (newPassword.length < 6) {
-    return NextResponse.json(
-      { error: "A nova senha deve ter pelo menos 6 caracteres" },
-      { status: 400 },
-    );
-  }
-
-  if (!(await verifyPassword(currentPassword, user.passwordHash))) {
+  if (!(await verifyPassword(parsed.data.currentPassword, user.passwordHash))) {
     return NextResponse.json(
       { error: "Senha atual incorreta" },
       { status: 400 },
     );
   }
 
-  await prisma.user.update({
+  const updated = await prisma.user.update({
     where: { id: user.id },
-    data: { passwordHash: await hashPassword(newPassword), mustChangePassword: false },
+    data: {
+      passwordHash: await hashPassword(parsed.data.newPassword),
+      mustChangePassword: false,
+      tokenVersion: { increment: 1 },
+    },
   });
+
+  await createSession(updated);
 
   return NextResponse.json({ ok: true });
 }

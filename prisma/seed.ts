@@ -55,15 +55,15 @@ async function main() {
     const isMaster = adminEmail.toLowerCase() === MASTER_EMAIL;
     await prisma.user.upsert({
       where: { email: adminEmail },
-      update: { role: isMaster ? "MASTER" : "ADMIN" },
+      update: {},
       create: {
         name: isMaster ? "Master" : "Administrador",
         email: adminEmail,
-        passwordHash: await bcrypt.hash(adminPassword, 10),
+        passwordHash: await bcrypt.hash(adminPassword, 12),
         role: isMaster ? "MASTER" : "ADMIN",
       },
     });
-    console.log(`Conta de acesso criada/atualizada para ${adminEmail} (${isMaster ? "master" : "admin"}).`);
+    console.log(`Conta de acesso criada/verificada para ${adminEmail} (${isMaster ? "master" : "admin"}).`);
   } else {
     console.warn("ADMIN_EMAIL/ADMIN_PASSWORD não definidos, admin não criado.");
   }

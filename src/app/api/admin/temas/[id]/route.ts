@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { AuthError, requireMaster } from "@/lib/auth";
+import { updateThemeSchema, parseBody } from "@/lib/validation";
 
 export const runtime = "nodejs";
 
@@ -24,20 +25,11 @@ export async function PATCH(
   }
 
   const body = await request.json().catch(() => null);
-  if (!body) {
-    return NextResponse.json({ error: "Corpo inválido" }, { status: 400 });
+  const parsed = parseBody(updateThemeSchema, body);
+  if (!parsed.ok) {
+    return NextResponse.json({ error: parsed.error }, { status: 400 });
   }
-
-  const name = body.name === undefined ? undefined : String(body.name ?? "").trim();
-  const color = body.color === undefined ? undefined : String(body.color ?? "").trim();
-  const icon = body.icon === undefined ? undefined : String(body.icon ?? "").trim();
-
-  if (name !== undefined && !name) {
-    return NextResponse.json({ error: "O nome do tema não pode ficar vazio" }, { status: 400 });
-  }
-  if (color !== undefined && !color) {
-    return NextResponse.json({ error: "A cor do tema não pode ficar vazia" }, { status: 400 });
-  }
+  const { name, color, icon } = parsed.data;
 
   const updated = await prisma.theme.update({
     where: { id },
