@@ -7,30 +7,34 @@ const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  const temas: { slug: string; name: string; icon: string; color: string }[] = [
+  const temas: { slug: string; name: string; icon: string; color: string; order: number }[] = [
     {
       slug: "CONFIGURACAO_GERAL",
       name: "Configuração Geral",
       icon: "settings",
       color: "#3b82f6",
-    },
-    {
-      slug: "USABILIDADE",
-      name: "Usabilidade",
-      icon: "mouse-pointer-click",
-      color: "#8b5cf6",
-    },
-    {
-      slug: "PABX",
-      name: "PABX",
-      icon: "phone",
-      color: "#10b981",
+      order: 1,
     },
     {
       slug: "FLUXO_COMUNICACAO",
       name: "Fluxo de Comunicação",
       icon: "network",
       color: "#f59e0b",
+      order: 2,
+    },
+    {
+      slug: "USABILIDADE",
+      name: "Usabilidade",
+      icon: "mouse-pointer-click",
+      color: "#8b5cf6",
+      order: 3,
+    },
+    {
+      slug: "PABX",
+      name: "PABX",
+      icon: "phone",
+      color: "#10b981",
+      order: 4,
     },
   ];
 

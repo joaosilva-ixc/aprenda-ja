@@ -44,7 +44,7 @@ export async function GET() {
     await Promise.all([
       prisma.theme.findMany({
         select: { id: true, name: true, color: true },
-        orderBy: { name: "asc" },
+        orderBy: [{ order: "asc" }, { name: "asc" }],
       }),
       prisma.aula.findMany({
         where: { viewCount: { gt: 0 } },

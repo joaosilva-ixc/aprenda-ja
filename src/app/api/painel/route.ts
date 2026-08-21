@@ -22,7 +22,7 @@ export async function GET() {
         title: true,
         status: true,
         viewCount: true,
-        theme: { select: { id: true, name: true, color: true } },
+        theme: { select: { id: true, name: true, color: true, order: true } },
       },
       orderBy: { createdAt: "desc" },
     }),
@@ -44,6 +44,7 @@ export async function GET() {
     id: string;
     name: string;
     color: string;
+    order: number;
     total: number;
     completed: number;
     percentual: number;
@@ -58,6 +59,7 @@ export async function GET() {
         id: a.theme.id,
         name: a.theme.name,
         color: a.theme.color,
+        order: a.theme.order,
         total: 0,
         completed: 0,
         percentual: 0,
@@ -74,6 +76,7 @@ export async function GET() {
     t.percentual = t.total ? Math.round((t.completed / t.total) * 100) : 0;
     t.concluido = t.total > 0 && t.completed === t.total;
   }
+  themes.sort((a, b) => a.order - b.order || a.name.localeCompare(b.name));
 
   const totalAulas = aulas.length;
   const totalAssistidas = progressList.filter((p) => p.completed).length;

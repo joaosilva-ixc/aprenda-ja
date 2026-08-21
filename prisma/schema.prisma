@@ -33,6 +33,7 @@ model Theme {
   name      String
   icon      String
   color     String
+  order     Int    @default(0)
   createdAt DateTime @default(now())
   aulas     Aula[]
 }

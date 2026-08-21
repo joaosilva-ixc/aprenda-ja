@@ -12,7 +12,7 @@ export async function GET() {
 
   const temas = await prisma.theme.findMany({
     include: { _count: { select: { aulas: true } } },
-    orderBy: { name: "asc" },
+    orderBy: [{ order: "asc" }, { name: "asc" }],
   });
   return NextResponse.json({ temas });
 }

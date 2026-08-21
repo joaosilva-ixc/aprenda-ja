@@ -26,7 +26,7 @@ export async function GET() {
 
   const temas = await prisma.theme.findMany({
     include: { _count: { select: { aulas: true } } },
-    orderBy: { name: "asc" },
+    orderBy: [{ order: "asc" }, { name: "asc" }],
   });
   return NextResponse.json({ temas });
 }
@@ -67,8 +67,11 @@ export async function POST(request: Request) {
     );
   }
 
+  const last = await prisma.theme.aggregate({ _max: { order: true } });
+  const order = (last._max.order ?? 0) + 1;
+
   const tema = await prisma.theme.create({
-    data: { name, slug, color, icon },
+    data: { name, slug, color, icon, order },
   });
 
   return NextResponse.json({ tema }, { status: 201 });
