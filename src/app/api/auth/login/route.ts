@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { verifyPassword, createSession } from "@/lib/auth";
+import { verifyPassword, createSession, createTwoFactorChallenge } from "@/lib/auth";
 import { getClientIp, rateLimit } from "@/lib/rate-limit";
 import { loginSchema, parseBody } from "@/lib/validation";
 
@@ -44,6 +44,11 @@ export async function POST(request: Request) {
       { error: "E-mail ou senha inválidos" },
       { status: 401 },
     );
+  }
+
+  if (user.totpEnabled) {
+    await createTwoFactorChallenge(user.id);
+    return NextResponse.json({ twoFactorRequired: true });
   }
 
   await createSession(user);

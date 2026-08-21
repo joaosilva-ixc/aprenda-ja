@@ -19,13 +19,13 @@ export async function GET(
   }
 
   const { id } = await params;
-  const aula = await prisma.aula.findUnique({
+  const material = await prisma.aulaMaterial.findUnique({
     where: { id },
-    select: { videoUrl: true, blobPathname: true },
+    select: { url: true, pathname: true },
   });
-  if (!aula?.videoUrl) {
-    return NextResponse.json({ error: "Vídeo não encontrado" }, { status: 404 });
+  if (!material?.url) {
+    return NextResponse.json({ error: "Material não encontrado" }, { status: 404 });
   }
 
-  return blobDeliveryResponse(aula.videoUrl, aula.blobPathname);
+  return blobDeliveryResponse(material.url, material.pathname);
 }

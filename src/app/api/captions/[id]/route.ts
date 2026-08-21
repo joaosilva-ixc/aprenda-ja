@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { blobDeliveryResponse } from "@/lib/blob-delivery";
 import { requireUser, AuthError } from "@/lib/auth";
 
 export const runtime = "nodejs";
@@ -21,11 +20,16 @@ export async function GET(
   const { id } = await params;
   const aula = await prisma.aula.findUnique({
     where: { id },
-    select: { videoUrl: true, blobPathname: true },
+    select: { captionsVtt: true },
   });
-  if (!aula?.videoUrl) {
-    return NextResponse.json({ error: "Vídeo não encontrado" }, { status: 404 });
+  if (!aula?.captionsVtt) {
+    return NextResponse.json({ error: "Legendas não encontradas" }, { status: 404 });
   }
 
-  return blobDeliveryResponse(aula.videoUrl, aula.blobPathname);
+  return new NextResponse(aula.captionsVtt, {
+    headers: {
+      "Content-Type": "text/vtt; charset=utf-8",
+      "Cache-Control": "private, max-age=300",
+    },
+  });
 }

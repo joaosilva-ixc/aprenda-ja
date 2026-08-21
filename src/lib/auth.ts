@@ -7,8 +7,10 @@ import { prisma } from "@/lib/prisma";
 import type { UserRole } from "@/generated/prisma/enums";
 
 const SESSION_COOKIE = "aj_session";
+const TOTP_CHALLENGE_COOKIE = "aj_2fa";
 const SESSION_DURATION = "30d";
 const MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
+const CHALLENGE_MAX_AGE_SECONDS = 5 * 60;
 
 const TEMP_PASSWORD_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
 
@@ -40,10 +42,12 @@ export async function createSession(user: {
   id: string;
   role: UserRole;
   tokenVersion: number;
+  totpEnabled?: boolean;
 }) {
   const token = await new SignJWT({
     role: user.role,
     ver: user.tokenVersion,
+    tf: Boolean(user.totpEnabled),
   })
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(user.id)
@@ -58,6 +62,49 @@ export async function createSession(user: {
     secure: process.env.NODE_ENV === "production",
     path: "/",
     maxAge: MAX_AGE_SECONDS,
+  });
+}
+
+export async function createTwoFactorChallenge(userId: string) {
+  const token = await new SignJWT({ purpose: "2fa" })
+    .setProtectedHeader({ alg: "HS256" })
+    .setSubject(userId)
+    .setIssuedAt()
+    .setExpirationTime("5m")
+    .sign(getSecret());
+
+  const cookieStore = await cookies();
+  cookieStore.set(TOTP_CHALLENGE_COOKIE, token, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: CHALLENGE_MAX_AGE_SECONDS,
+  });
+}
+
+export async function consumeTwoFactorChallenge(): Promise<string | null> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(TOTP_CHALLENGE_COOKIE)?.value;
+  if (!token) return null;
+
+  try {
+    const { payload } = await jwtVerify(token, getSecret());
+    if (payload.purpose !== "2fa" || !payload.sub) return null;
+    return payload.sub;
+  } catch {
+    return null;
+  }
+}
+
+export async function clearTwoFactorChallenge() {
+  const cookieStore = await cookies();
+  cookieStore.set(TOTP_CHALLENGE_COOKIE, "", {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 0,
   });
 }
 

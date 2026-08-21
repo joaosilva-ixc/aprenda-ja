@@ -1,15 +1,17 @@
 import "dotenv/config";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
+import { createRequire } from "node:module";
 import { mkdir, readFile, rm } from "node:fs/promises";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
 import { put } from "@vercel/blob";
 
+const require = createRequire(import.meta.url);
 const execFileAsync = promisify(execFile);
 
-const ffmpegPath = require("ffmpeg-static");
-const ffprobePath = require("ffprobe-static").path;
+const ffmpegPath = require("ffmpeg-static") as string;
+const ffprobePath = (require("ffprobe-static") as { path: string }).path;
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });

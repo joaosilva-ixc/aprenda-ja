@@ -51,9 +51,24 @@ model Aula {
   status       VideoStatus @default(READY)
   tags         String[]
   viewCount    Int         @default(0)
+  captionsVtt  String?
+  chapters     Json?
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
   progress     AulaProgress[]
+  materials    AulaMaterial[]
+}
+
+model AulaMaterial {
+  id          String   @id @default(cuid())
+  aulaId      String
+  aula        Aula     @relation(fields: [aulaId], references: [id], onDelete: Cascade)
+  title       String
+  url         String
+  pathname    String
+  sizeBytes   Int?
+  contentType String?
+  createdAt   DateTime @default(now())
 }
 
 model User {
@@ -63,6 +78,9 @@ model User {
   passwordHash String
   role         UserRole @default(ALUNO)
   tokenVersion Int      @default(0)
+  totpSecret   String?
+  totpEnabled  Boolean  @default(false)
+  recoveryCodes String[] @default([])
   lastAccessAt DateTime?
   mustChangePassword Boolean @default(false)
   streakCount  Int      @default(0)

@@ -40,12 +40,17 @@ export async function proxy(request: NextRequest) {
   }
 
   const role = payload.role as string | undefined;
+  const isStaff = role === "ADMIN" || role === "MASTER";
+
+  if (isStaff && payload.tf !== true && pathname !== "/seguranca") {
+    return NextResponse.redirect(new URL("/seguranca", request.url));
+  }
 
   if (MASTER_ONLY_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)) && role !== "MASTER") {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
-  if (STAFF_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)) && role !== "MASTER" && role !== "ADMIN") {
+  if (STAFF_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)) && !isStaff) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 

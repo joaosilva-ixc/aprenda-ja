@@ -6,9 +6,21 @@ import { useRouter } from "next/navigation";
 const SPEEDS = [0.75, 1, 1.25, 1.5, 2];
 const SPEED_KEY = "aulas-playback-speed";
 
+export type Chapter = { t: number; label: string };
+
+function formatTime(totalSec: number): string {
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = Math.floor(totalSec % 60);
+  const mm = String(m).padStart(h > 0 ? 2 : 1, "0");
+  return `${h > 0 ? `${h}:` : ""}${mm}:${String(s).padStart(2, "0")}`;
+}
+
 export function AulaPlayer({
   aulaId,
   videoUrl,
+  captionsUrl,
+  chapters = [],
   statusLabel,
   initialCompleted,
   initialFavorite,
@@ -17,6 +29,8 @@ export function AulaPlayer({
 }: {
   aulaId: string;
   videoUrl: string;
+  captionsUrl?: string | null;
+  chapters?: Chapter[];
   statusLabel: string;
   initialCompleted: boolean;
   initialFavorite: boolean;
@@ -28,6 +42,7 @@ export function AulaPlayer({
   const [favorite, setFavorite] = useState(initialFavorite);
   const [saving, setSaving] = useState(false);
   const [speed, setSpeed] = useState(1);
+  const [currentTime, setCurrentTime] = useState(0);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const positionRef = useRef(0);
@@ -35,7 +50,9 @@ export function AulaPlayer({
   const completedRef = useRef(initialCompleted);
   const restoredRef = useRef(false);
 
-  completedRef.current = completed;
+  useEffect(() => {
+    completedRef.current = completed;
+  }, [completed]);
 
   useEffect(() => {
     let stored = 1;
@@ -151,7 +168,10 @@ export function AulaPlayer({
 
   function onTimeUpdate() {
     const video = videoRef.current;
-    if (video) positionRef.current = video.currentTime;
+    if (video) {
+      positionRef.current = video.currentTime;
+      setCurrentTime(video.currentTime);
+    }
     if (
       video &&
       video.duration > 0 &&
@@ -162,6 +182,18 @@ export function AulaPlayer({
       update({ aulaId, completed: true });
     }
   }
+
+  function seekTo(time: number) {
+    const video = videoRef.current;
+    if (!video) return;
+    video.currentTime = time;
+    setCurrentTime(time);
+    video.play().catch(() => {});
+  }
+
+  const currentChapterIndex = chapters.length
+    ? chapters.findLastIndex((c) => c.t <= currentTime)
+    : -1;
 
   function onPause() {
     savePosition(videoRef.current?.currentTime ?? 0);
@@ -195,7 +227,11 @@ export function AulaPlayer({
           playsInline
           preload="metadata"
           src={videoUrl}
-        />
+        >
+          {captionsUrl && (
+            <track src={captionsUrl} kind="captions" srcLang="pt-BR" label="Português" default />
+          )}
+        </video>
       </div>
     );
   }
@@ -214,8 +250,40 @@ export function AulaPlayer({
           onTimeUpdate={onTimeUpdate}
           onPause={onPause}
           onEnded={onEnded}
-        />
+        >
+          {captionsUrl && (
+            <track src={captionsUrl} kind="captions" srcLang="pt-BR" label="Português" default />
+          )}
+        </video>
       </div>
+
+      {chapters.length > 0 && (
+        <div className="mt-3">
+          {currentChapterIndex >= 0 && (
+            <p className="mb-2 text-xs font-semibold text-gray-500">
+              Capítulo atual:{" "}
+              <span className="text-gray-800">{chapters[currentChapterIndex].label}</span>
+            </p>
+          )}
+          <div className="flex flex-wrap gap-1.5">
+            {chapters.map((chapter, index) => (
+              <button
+                key={`${chapter.t}-${index}`}
+                type="button"
+                onClick={() => seekTo(chapter.t)}
+                aria-current={index === currentChapterIndex}
+                className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition active:scale-95 ${
+                  index === currentChapterIndex
+                    ? "bg-blue-600 text-white shadow"
+                    : "bg-gray-100 text-gray-600 hover:bg-blue-50 hover:text-blue-700"
+                }`}
+              >
+                {formatTime(chapter.t)} · {chapter.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="mt-3 flex flex-wrap items-center gap-3">
         <button

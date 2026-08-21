@@ -15,6 +15,7 @@ export async function GET() {
       email: user.email,
       role: user.role,
       mustChangePassword: user.mustChangePassword,
+      totpEnabled: user.totpEnabled,
     },
   });
 }

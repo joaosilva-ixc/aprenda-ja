@@ -89,6 +89,11 @@ export const createAnnouncementSchema = z.object({
   type: z.enum(["AVISO", "COMUNICADO", "NOVIDADE"]).default("AVISO"),
 });
 
+export const chapterSchema = z.object({
+  t: z.number().int().min(0).max(86_400),
+  label: z.string().trim().min(1, "Capítulo sem título").max(120, "Título do capítulo muito longo"),
+});
+
 export const updateAulaSchema = z
   .object({
     title: z.string().trim().min(1, "O título não pode ficar vazio").max(200, "Título muito longo").optional(),
@@ -96,6 +101,12 @@ export const updateAulaSchema = z
     themeId: z.string().min(1).max(64).optional(),
     tags: z.string().max(500, "Tags muito longas").optional(),
     status: z.enum(["UPLOADING", "READY", "SYNCING", "SYNCED", "FAILED"]).optional(),
+    captionsVtt: z
+      .string()
+      .max(200_000, "Arquivo de legendas muito grande (máx. 200 KB)")
+      .nullable()
+      .optional(),
+    chapters: z.array(chapterSchema).max(50, "Máximo de 50 capítulos").nullable().optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: "Nada para atualizar",

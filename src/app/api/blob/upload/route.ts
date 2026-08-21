@@ -5,7 +5,7 @@ import { requireMaster, AuthError } from "@/lib/auth";
 export const runtime = "nodejs";
 
 const MAX_SIZE = 1024 * 1024 * 1024; // 1GB
-const ALLOWED_CONTENT_TYPES = ["video/*", "image/*"];
+const ALLOWED_CONTENT_TYPES = ["video/*", "image/*", "application/pdf"];
 
 export async function POST(request: Request) {
   let admin;

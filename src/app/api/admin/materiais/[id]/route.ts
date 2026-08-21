@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { del } from "@vercel/blob";
 import { prisma } from "@/lib/prisma";
 import { requireMaster, AuthError } from "@/lib/auth";
-import { deleteBlob } from "@/lib/storage";
 
 export const runtime = "nodejs";
 
@@ -20,24 +19,17 @@ export async function DELETE(
   }
 
   const { id } = await params;
-
-  const aula = await prisma.aula.findUnique({
-    where: { id },
-    include: { materials: { select: { url: true } } },
-  });
-  if (!aula) {
-    return NextResponse.json({ error: "Aula não encontrada" }, { status: 404 });
+  const material = await prisma.aulaMaterial.findUnique({ where: { id } });
+  if (!material) {
+    return NextResponse.json({ error: "Material não encontrado" }, { status: 404 });
   }
 
-  await deleteBlob(aula.blobPathname);
-  for (const material of aula.materials) {
-    try {
-      await del(material.url);
-    } catch (err) {
-      console.error("Falha ao remover blob de material:", err);
-    }
+  try {
+    await del(material.url);
+  } catch (err) {
+    console.error("Falha ao remover blob do material:", err);
   }
-  await prisma.aula.delete({ where: { id } });
+  await prisma.aulaMaterial.delete({ where: { id } });
 
   return NextResponse.json({ ok: true });
 }

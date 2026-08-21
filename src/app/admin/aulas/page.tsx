@@ -1,10 +1,18 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { upload } from "@vercel/blob/client";
 
 type Tema = { id: string; name: string; color: string };
+
+type Material = {
+  id: string;
+  title: string;
+  sizeBytes: number | null;
+  createdAt: string;
+};
 
 type Aula = {
   id: string;
@@ -15,6 +23,9 @@ type Aula = {
   viewCount: number;
   createdAt: string;
   videoUrl: string;
+  hasCaptions?: boolean;
+  chapters?: { t: number; label: string }[] | unknown;
+  materials?: Material[];
   theme: { id: string; name: string; color: string };
 };
 
@@ -54,6 +65,12 @@ export default function AdminAulasPage() {
   const [editStatus, setEditStatus] = useState("");
   const [editSending, setEditSending] = useState(false);
   const [editError, setEditError] = useState("");
+  const [editCaptions, setEditCaptions] = useState<string | null | undefined>(undefined);
+  const [editCaptionsName, setEditCaptionsName] = useState("");
+  const [editChapters, setEditChapters] = useState("");
+  const [materialFile, setMaterialFile] = useState<File | null>(null);
+  const [materialBusy, setMaterialBusy] = useState(false);
+  const captionsInputRef = useRef<HTMLInputElement | null>(null);
 
   const fetchAulas = useCallback(async () => {
     setLoading(true);
@@ -99,6 +116,112 @@ export default function AdminAulasPage() {
     setEditTags(aula.tags.join(", "));
     setEditStatus(aula.status);
     setEditError("");
+    setEditCaptions(undefined);
+    setEditCaptionsName("");
+    setEditChapters(
+      Array.isArray(aula.chapters)
+        ? (aula.chapters as { t: number; label: string }[])
+            .map((c) => {
+              const h = Math.floor(c.t / 3600);
+              const m = Math.floor((c.t % 3600) / 60);
+              const s = String(c.t % 60).padStart(2, "0");
+              return `${h > 0 ? `${h}:` : ""}${String(m).padStart(h > 0 ? 2 : 1, "0")}:${s} ${c.label}`;
+            })
+            .join("\n")
+        : "",
+    );
+    setMaterialFile(null);
+  }
+
+  function handleCaptionsFile(file: File | undefined) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      setEditCaptions(String(reader.result ?? ""));
+      setEditCaptionsName(file.name);
+    };
+    reader.readAsText(file);
+  }
+
+  function parseChaptersInput(text: string): { t: number; label: string }[] | null {
+    const chapters: { t: number; label: string }[] = [];
+    for (const line of text.split("\n")) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+      const match = trimmed.match(/^(?:(\d+):)?(\d{1,2}):(\d{2})\s+(.+)$/);
+      if (!match) return null;
+      chapters.push({
+        t: (Number(match[1]) || 0) * 3600 + Number(match[2]) * 60 + Number(match[3]),
+        label: match[4].trim(),
+      });
+    }
+    return chapters;
+  }
+
+  async function uploadMaterialPdf(aulaId: string, file: File) {
+    try {
+      return await upload(`materiais/${file.name}`, file, {
+        access: "private",
+        handleUploadUrl: "/api/blob/upload",
+        contentType: file.type || "application/pdf",
+      });
+    } catch {
+      return await upload(`materiais/${file.name}`, file, {
+        access: "public",
+        handleUploadUrl: "/api/blob/upload",
+        contentType: file.type || "application/pdf",
+      });
+    }
+  }
+
+  async function handleAddMaterial() {
+    if (!editing || !materialFile) return;
+    setMaterialBusy(true);
+    setEditError("");
+    try {
+      const blobResult = await uploadMaterialPdf(editing.id, materialFile);
+      const res = await fetch(`/api/admin/aulas/${editing.id}/materiais`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: materialFile.name.replace(/\.[^.]+$/, ""),
+          url: blobResult.url,
+          pathname: blobResult.pathname,
+          sizeBytes: materialFile.size,
+          contentType: materialFile.type || "application/pdf",
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Erro ao registrar material.");
+      setEditing({
+        ...editing,
+        materials: [...(editing.materials ?? []), data.material],
+      });
+      setMaterialFile(null);
+      fetchAulas();
+    } catch (err) {
+      setEditError(err instanceof Error ? err.message : "Erro ao enviar material.");
+    } finally {
+      setMaterialBusy(false);
+    }
+  }
+
+  async function handleDeleteMaterial(materialId: string) {
+    if (!editing) return;
+    try {
+      const res = await fetch(`/api/admin/materiais/${materialId}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error ?? "Erro ao remover material.");
+      }
+      setEditing({
+        ...editing,
+        materials: (editing.materials ?? []).filter((m) => m.id !== materialId),
+      });
+      fetchAulas();
+    } catch (err) {
+      setEditError(err instanceof Error ? err.message : "Erro ao remover material.");
+    }
   }
 
   async function handleUpdate(e: React.FormEvent) {
@@ -107,6 +230,10 @@ export default function AdminAulasPage() {
     setEditSending(true);
     setEditError("");
     try {
+      const chapters = parseChaptersInput(editChapters);
+      if (chapters === null) {
+        throw new Error("Formato de capítulos inválido. Use uma por linha: mm:ss Título");
+      }
       const res = await fetch(`/api/admin/aulas/${editing.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -116,6 +243,8 @@ export default function AdminAulasPage() {
           themeId: editThemeId,
           tags: editTags,
           status: editStatus,
+          ...(editCaptions !== undefined ? { captionsVtt: editCaptions } : {}),
+          ...(editChapters.trim() || editing.chapters ? { chapters } : {}),
         }),
       });
       const data = await res.json();
@@ -353,6 +482,106 @@ export default function AdminAulasPage() {
                   placeholder="ramal, fila, integração"
                   className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200"
                 />
+              </div>
+
+              <div className="rounded-2xl border border-gray-100 p-3">
+                <p className="text-xs font-bold tracking-wide text-gray-500 uppercase">Legendas (WebVTT)</p>
+                {editing.hasCaptions && editCaptions === undefined && (
+                  <p className="mt-1.5 text-xs font-semibold text-emerald-600">
+                    Legendas já cadastradas nesta aula.
+                  </p>
+                )}
+                {editCaptionsName && (
+                  <p className="mt-1.5 text-xs font-semibold text-blue-600">
+                    Novo arquivo carregado: {editCaptionsName}
+                  </p>
+                )}
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <input
+                    ref={captionsInputRef}
+                    type="file"
+                    accept=".vtt,text/vtt"
+                    onChange={(e) => handleCaptionsFile(e.target.files?.[0])}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => captionsInputRef.current?.click()}
+                    className="rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-600 transition hover:bg-blue-100 active:scale-95"
+                  >
+                    {editing.hasCaptions ? "Substituir legendas" : "Carregar arquivo .vtt"}
+                  </button>
+                  {(editCaptions !== undefined || editing.hasCaptions) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditCaptions(null);
+                        setEditCaptionsName("");
+                        if (captionsInputRef.current) captionsInputRef.current.value = "";
+                      }}
+                      className="rounded-lg bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-100 active:scale-95"
+                    >
+                      Remover legendas
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-gray-100 p-3">
+                <label className="block text-xs font-bold tracking-wide text-gray-500 uppercase">
+                  Capítulos{" "}
+                  <span className="font-normal normal-case">(uma por linha: mm:ss Título)</span>
+                </label>
+                <textarea
+                  value={editChapters}
+                  onChange={(e) => setEditChapters(e.target.value)}
+                  rows={3}
+                  placeholder={"0:00 Introdução\n2:30 Configuração inicial\n10:15 Exemplo prático"}
+                  className="mt-2 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200"
+                />
+              </div>
+
+              <div className="rounded-2xl border border-gray-100 p-3">
+                <p className="text-xs font-bold tracking-wide text-gray-500 uppercase">
+                  Materiais complementares (PDF)
+                </p>
+                {(editing.materials ?? []).length > 0 && (
+                  <ul className="mt-2 space-y-1.5">
+                    {(editing.materials ?? []).map((material) => (
+                      <li key={material.id} className="flex items-center gap-2 rounded-lg bg-gray-50 px-3 py-2">
+                        <span className="min-w-0 flex-1 truncate text-xs font-semibold text-gray-700">
+                          {material.title}
+                          {material.sizeBytes
+                            ? ` · ${(material.sizeBytes / 1024 / 1024).toFixed(1)} MB`
+                            : ""}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteMaterial(material.id)}
+                          className="shrink-0 rounded-md bg-red-50 px-2 py-1 text-[11px] font-bold text-red-600 transition hover:bg-red-100 active:scale-95"
+                        >
+                          Remover
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <input
+                    type="file"
+                    accept="application/pdf,.pdf"
+                    onChange={(e) => setMaterialFile(e.target.files?.[0] ?? null)}
+                    className="max-w-full flex-1 text-xs text-gray-600 file:mr-2 file:rounded-lg file:border-0 file:bg-blue-50 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-blue-600 hover:file:bg-blue-100"
+                  />
+                  <button
+                    type="button"
+                    disabled={!materialFile || materialBusy}
+                    onClick={handleAddMaterial}
+                    className="rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-600 transition hover:bg-blue-100 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {materialBusy ? "Enviando…" : "Adicionar"}
+                  </button>
+                </div>
               </div>
             </div>
 

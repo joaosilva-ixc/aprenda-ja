@@ -31,12 +31,30 @@ export async function PATCH(
   if (!parsed.ok) {
     return NextResponse.json({ error: parsed.error }, { status: 400 });
   }
-  const { title, description, themeId, tags: tagsRaw, status } = parsed.data;
+  const { title, description, themeId, tags: tagsRaw, status, captionsVtt, chapters } = parsed.data;
 
   if (themeId !== undefined) {
     const theme = await prisma.theme.findUnique({ where: { id: themeId } });
     if (!theme) {
       return NextResponse.json({ error: "Tema não encontrado" }, { status: 400 });
+    }
+  }
+
+  if (captionsVtt !== undefined && captionsVtt !== null && !captionsVtt.trim().toUpperCase().startsWith("WEBVTT")) {
+    return NextResponse.json(
+      { error: "Arquivo de legendas inválido (deve ser WebVTT)" },
+      { status: 400 },
+    );
+  }
+
+  if (chapters !== undefined && chapters !== null) {
+    for (let i = 1; i < chapters.length; i++) {
+      if (chapters[i].t <= chapters[i - 1].t) {
+        return NextResponse.json(
+          { error: "Os capítulos devem estar em ordem crescente de tempo" },
+          { status: 400 },
+        );
+      }
     }
   }
 
@@ -54,6 +72,10 @@ export async function PATCH(
     ...(themeId !== undefined ? { themeId } : {}),
     ...(tags !== undefined ? { tags } : {}),
     ...(status !== undefined ? { status: status as VideoStatus } : {}),
+    ...(captionsVtt !== undefined ? { captionsVtt } : {}),
+    ...(chapters !== undefined
+      ? { chapters: chapters === null ? Prisma.JsonNull : chapters }
+      : {}),
   };
 
   const updated = await prisma.aula.update({

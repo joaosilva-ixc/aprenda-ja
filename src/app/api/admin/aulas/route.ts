@@ -38,9 +38,17 @@ export async function GET(request: Request) {
           }
         : {}),
     },
-    include: { theme: true },
+    include: {
+      theme: true,
+      materials: { select: { id: true, title: true, sizeBytes: true, createdAt: true }, orderBy: { createdAt: "asc" } },
+    },
     orderBy: { createdAt: "desc" },
   });
 
-  return NextResponse.json({ aulas });
+  return NextResponse.json({
+    aulas: aulas.map(({ captionsVtt, ...aula }) => ({
+      ...aula,
+      hasCaptions: Boolean(captionsVtt),
+    })),
+  });
 }
