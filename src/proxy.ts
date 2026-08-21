@@ -42,7 +42,14 @@ export async function proxy(request: NextRequest) {
   const role = payload.role as string | undefined;
   const isStaff = role === "ADMIN" || role === "MASTER";
 
-  if (isStaff && payload.tf !== true && pathname !== "/seguranca") {
+  const ENFORCE_2FA_PREFIXES = ["/admin", "/upload"];
+
+  if (
+    isStaff &&
+    payload.tf !== true &&
+    pathname !== "/seguranca" &&
+    ENFORCE_2FA_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))
+  ) {
     return NextResponse.redirect(new URL("/seguranca", request.url));
   }
 

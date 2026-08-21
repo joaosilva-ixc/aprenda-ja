@@ -155,10 +155,19 @@ export default function SegurancaPage() {
         </div>
 
         {!totpEnabled && (
-          <p className="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800">
-            Perfis de gestão devem ativar a verificação em duas etapas para acessar o painel.
-            Use um app autenticador (Google Authenticator, Microsoft Authenticator, Authy…).
-          </p>
+          <>
+            <p className="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              Perfis de gestão devem ativar a verificação em duas etapas para acessar o painel.
+              Use um app autenticador (Google Authenticator, Microsoft Authenticator, Authy…).
+              Enquanto isso, você pode continuar navegando no site.
+            </p>
+            <Link
+              href="/"
+              className="mt-4 inline-block text-xs font-semibold text-gray-500 underline-offset-2 transition hover:text-blue-700 hover:underline"
+            >
+              Voltar ao início
+            </Link>
+          </>
         )}
 
         {error && (
