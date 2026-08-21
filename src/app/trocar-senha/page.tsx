@@ -71,7 +71,7 @@ export default function ChangePasswordPage() {
 
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 items-center px-4 py-12">
-      <div className="animate-fade-up w-full rounded-3xl bg-white p-6 shadow-2xl shadow-blue-900/20 dark:bg-slate-900 sm:p-8">
+      <div className="animate-fade-up w-full rounded-3xl bg-white p-6 shadow-2xl shadow-blue-900/20 sm:p-8">
         <div className="mb-6 text-center">
           <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30">
             <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -82,10 +82,10 @@ export default function ChangePasswordPage() {
               />
             </svg>
           </span>
-          <h1 className="mt-4 text-2xl font-extrabold tracking-tight text-gray-900 dark:text-slate-100">
+          <h1 className="mt-4 text-2xl font-extrabold tracking-tight text-gray-900">
             {mustChange ? "Defina sua nova senha" : "Trocar senha"}
           </h1>
-          <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
+          <p className="mt-1 text-sm text-gray-500">
             {mustChange
               ? "Este é seu primeiro acesso. Crie uma senha nova para continuar."
               : "Atualize sua senha de acesso à plataforma."}
@@ -93,13 +93,13 @@ export default function ChangePasswordPage() {
         </div>
 
         {success ? (
-          <div className="rounded-xl bg-emerald-50 px-4 py-3 text-center text-sm font-semibold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
+          <div className="rounded-xl bg-emerald-50 px-4 py-3 text-center text-sm font-semibold text-emerald-700">
             Senha alterada com sucesso! Redirecionando…
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-slate-300">
+              <label className="mb-1.5 block text-sm font-semibold text-gray-700">
                 Senha atual
               </label>
               <input
@@ -109,12 +109,12 @@ export default function ChangePasswordPage() {
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 placeholder="Sua senha atual (a temporária no 1º acesso)"
-                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-800 dark:focus:bg-slate-800"
+                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200"
               />
             </div>
 
             <div>
-              <label className="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-slate-300">Nova senha</label>
+              <label className="mb-1.5 block text-sm font-semibold text-gray-700">Nova senha</label>
               <input
                 type="password"
                 required
@@ -123,12 +123,12 @@ export default function ChangePasswordPage() {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="mínimo 6 caracteres"
-                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-800 dark:focus:bg-slate-800"
+                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200"
               />
             </div>
 
             <div>
-              <label className="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-slate-300">
+              <label className="mb-1.5 block text-sm font-semibold text-gray-700">
                 Confirmar nova senha
               </label>
               <input
@@ -139,12 +139,12 @@ export default function ChangePasswordPage() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Repita a nova senha"
-                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-800 dark:focus:bg-slate-800"
+                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200"
               />
             </div>
 
             {error && (
-              <p className="rounded-xl bg-red-50 px-3 py-2.5 text-sm text-red-700 dark:bg-red-950/60 dark:text-red-300">{error}</p>
+              <p className="rounded-xl bg-red-50 px-3 py-2.5 text-sm text-red-700">{error}</p>
             )}
 
             <button
@@ -157,8 +157,8 @@ export default function ChangePasswordPage() {
           </form>
         )}
 
-        <p className="mt-5 text-center text-xs text-gray-400 dark:text-slate-500">
-          <Link href="/" className="font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400">
+        <p className="mt-5 text-center text-xs text-gray-400">
+          <Link href="/" className="font-semibold text-blue-600 hover:text-blue-700">
             Voltar ao início
           </Link>
         </p>

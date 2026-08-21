@@ -224,8 +224,8 @@ export function AulaPlayer({
           disabled={saving}
           className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 ${
             completed
-              ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-950/70 dark:text-emerald-300 dark:hover:bg-emerald-900/60"
-              : "bg-white text-gray-700 shadow hover:bg-gray-50 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+              ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+              : "bg-white text-gray-700 shadow hover:bg-gray-50"
           }`}
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -240,8 +240,8 @@ export function AulaPlayer({
           disabled={saving}
           className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 ${
             favorite
-              ? "bg-rose-100 text-rose-600 hover:bg-rose-200 dark:bg-rose-950/70 dark:text-rose-300 dark:hover:bg-rose-900/60"
-              : "bg-white text-gray-700 shadow hover:bg-gray-50 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+              ? "bg-rose-100 text-rose-600 hover:bg-rose-200"
+              : "bg-white text-gray-700 shadow hover:bg-gray-50"
           }`}
         >
           <svg
@@ -260,12 +260,12 @@ export function AulaPlayer({
           {favorite ? "Favorita" : "Favoritar"}
         </button>
 
-        <span className="ml-auto rounded-full bg-gray-100 px-2.5 py-1 text-[11px] font-bold text-gray-500 dark:bg-slate-800 dark:text-slate-400">
+        <span className="ml-auto rounded-full bg-gray-100 px-2.5 py-1 text-[11px] font-bold text-gray-500">
           {statusLabel}
         </span>
 
         <div
-          className="flex items-center gap-0.5 rounded-xl bg-gray-100 p-1 dark:bg-slate-800"
+          className="flex items-center gap-0.5 rounded-xl bg-gray-100 p-1"
           role="group"
           aria-label="Velocidade de reprodução"
         >
@@ -277,8 +277,8 @@ export function AulaPlayer({
               aria-pressed={speed === s}
               className={`rounded-lg px-2 py-1 text-xs font-bold transition active:scale-95 ${
                 speed === s
-                  ? "bg-white text-blue-700 shadow dark:bg-slate-900 dark:text-blue-300"
-                  : "text-gray-500 hover:text-gray-800 dark:text-slate-400 dark:hover:text-slate-200"
+                  ? "bg-white text-blue-700 shadow"
+                  : "text-gray-500 hover:text-gray-800"
               }`}
             >
               {s}x

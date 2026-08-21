@@ -74,7 +74,7 @@ export default async function AulaPage({
         {canDelete && <DeleteAulaButton aulaId={aula.id} size="full" />}
       </div>
 
-      <div className="animate-fade-up overflow-hidden rounded-3xl bg-white shadow-2xl shadow-blue-900/20 dark:bg-slate-900 [animation-delay:100ms]">
+      <div className="animate-fade-up overflow-hidden rounded-3xl bg-white shadow-2xl shadow-blue-900/20 [animation-delay:100ms]">
         <div
           className="relative px-6 pt-8 pb-5 sm:px-8"
           style={{
@@ -112,7 +112,7 @@ export default async function AulaPage({
         </div>
 
         <div className="px-6 py-6 sm:px-8">
-          <p className="whitespace-pre-line text-gray-600 dark:text-slate-300">{aula.description}</p>
+          <p className="whitespace-pre-line text-gray-600">{aula.description}</p>
 
           <div className="mt-6">
             {canPlay ? (

@@ -3,9 +3,6 @@ import Link from "next/link";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { UserMenu } from "@/components/UserMenu";
-import { ThemeToggle } from "@/components/ThemeToggle";
-
-const themeInitScript = `(function(){try{var t=localStorage.getItem("theme");if(t==="dark"||(!t&&window.matchMedia("(prefers-color-scheme: dark)").matches)){document.documentElement.classList.add("dark")}}catch(e){}})();`;
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,9 +27,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col text-gray-900 dark:text-slate-100">
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
-        <header className="sticky top-0 z-50 border-b border-white/10 bg-white/70 backdrop-blur-xl dark:bg-slate-950/70">
+      <body className="flex min-h-full flex-col text-gray-900">
+        <header className="sticky top-0 z-50 border-b border-white/10 bg-white/70 backdrop-blur-xl">
           <nav className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-3">
             <Link href="/" className="group flex items-center gap-3">
               <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30 transition group-hover:scale-105">
@@ -52,18 +48,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </span>
               <span className="flex flex-col leading-tight">
                 <span className="text-base font-bold tracking-tight">Aprenda Já</span>
-                <span className="text-xs font-medium text-gray-500 dark:text-slate-400">Academy</span>
+                <span className="text-xs font-medium text-gray-500">Academy</span>
               </span>
             </Link>
 
             <div className="flex items-center gap-2">
               <Link
                 href="/"
-                className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-blue-50 hover:text-blue-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-blue-300"
+                className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-blue-50 hover:text-blue-700"
               >
                 Início
               </Link>
-              <ThemeToggle />
               <UserMenu />
             </div>
           </nav>

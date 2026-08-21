@@ -20,9 +20,9 @@ const typeLabels: Record<Announcement["type"], string> = {
 };
 
 const typeBadges: Record<Announcement["type"], string> = {
-  AVISO: "bg-amber-100 text-amber-700 dark:bg-amber-950/70 dark:text-amber-300",
-  COMUNICADO: "bg-blue-100 text-blue-700 dark:bg-blue-950/70 dark:text-blue-300",
-  NOVIDADE: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/70 dark:text-emerald-300",
+  AVISO: "bg-amber-100 text-amber-700",
+  COMUNICADO: "bg-blue-100 text-blue-700",
+  NOVIDADE: "bg-emerald-100 text-emerald-700",
 };
 
 function formatDate(iso: string) {
@@ -139,7 +139,7 @@ export default function AdminAnuncioPage() {
 
       <form
         onSubmit={handleSubmit}
-        className="animate-fade-up mb-6 space-y-4 rounded-3xl bg-white p-6 shadow-2xl shadow-blue-900/20 dark:bg-slate-900 [animation-delay:100ms] sm:p-8"
+        className="animate-fade-up mb-6 space-y-4 rounded-3xl bg-white p-6 shadow-2xl shadow-blue-900/20 [animation-delay:100ms] sm:p-8"
       >
         <h2 className="text-sm font-bold tracking-wide text-gray-800 uppercase">
           Publicar novo aviso
@@ -147,7 +147,7 @@ export default function AdminAnuncioPage() {
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label className="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-slate-300">
+            <label className="mb-1.5 block text-sm font-semibold text-gray-700">
               Título{" "}
               <span className="font-normal text-gray-400">(opcional)</span>
             </label>
@@ -160,7 +160,7 @@ export default function AdminAnuncioPage() {
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-slate-300">Tipo</label>
+            <label className="mb-1.5 block text-sm font-semibold text-gray-700">Tipo</label>
             <select
               value={type}
               onChange={(e) => setType(e.target.value as Announcement["type"])}
@@ -174,7 +174,7 @@ export default function AdminAnuncioPage() {
         </div>
 
         <div>
-          <label className="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-slate-300">
+          <label className="mb-1.5 block text-sm font-semibold text-gray-700">
             Mensagem{" "}
             <span className="font-normal text-gray-400">({message.length}/1200)</span>
           </label>
@@ -190,14 +190,14 @@ export default function AdminAnuncioPage() {
         </div>
 
         {error && (
-          <p className="rounded-xl bg-red-50 px-3 py-2.5 text-sm text-red-700 dark:bg-red-950/60 dark:text-red-300">{error}</p>
+          <p className="rounded-xl bg-red-50 px-3 py-2.5 text-sm text-red-700">{error}</p>
         )}
         {msg && (
           <p
             className={`rounded-xl px-3 py-2.5 text-sm ${
               msg.ok
-                ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
-                : "bg-red-50 text-red-700 dark:bg-red-950/60 dark:text-red-300"
+                ? "bg-emerald-50 text-emerald-700"
+                : "bg-red-50 text-red-700"
             }`}
           >
             {msg.text}
@@ -222,14 +222,14 @@ export default function AdminAnuncioPage() {
           {loading ? (
             <div className="h-24 animate-pulse rounded-2xl bg-white/40" />
           ) : announcements.length === 0 ? (
-            <p className="rounded-2xl border border-dashed border-white/40 bg-white/60 p-8 text-center text-sm text-gray-600 dark:border-slate-600 dark:bg-slate-900/80 dark:text-slate-300">
+            <p className="rounded-2xl border border-dashed border-white/40 bg-white/60 p-8 text-center text-sm text-gray-600">
               Nenhum aviso publicado ainda.
             </p>
           ) : (
             announcements.map((a) => (
               <div
                 key={a.id}
-                className="flex items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3 shadow-lg shadow-blue-900/10 dark:bg-slate-900"
+                className="flex items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3 shadow-lg shadow-blue-900/10"
               >
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-1.5">
@@ -239,17 +239,17 @@ export default function AdminAnuncioPage() {
                       {typeLabels[a.type]}
                     </span>
                     {a.title && (
-                      <span className="truncate text-sm font-bold text-gray-900 dark:text-slate-100">{a.title}</span>
+                      <span className="truncate text-sm font-bold text-gray-900">{a.title}</span>
                     )}
                   </div>
-                  <p className="mt-1 line-clamp-2 text-xs text-gray-600 dark:text-slate-300">{a.message}</p>
-                  <p className="mt-1 text-[10px] font-medium text-gray-400 dark:text-slate-500">
+                  <p className="mt-1 line-clamp-2 text-xs text-gray-600">{a.message}</p>
+                  <p className="mt-1 text-[10px] font-medium text-gray-400">
                     {formatDate(a.createdAt)} · {a.readCount} leitura(s)
                   </p>
                 </div>
                 <button
                   onClick={() => handleDelete(a)}
-                  className="shrink-0 rounded-lg bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-100 active:scale-95 dark:bg-red-950/60 dark:text-red-300 dark:hover:bg-red-900/60"
+                  className="shrink-0 rounded-lg bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-100 active:scale-95"
                 >
                   Excluir
                 </button>

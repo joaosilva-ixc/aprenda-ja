@@ -33,7 +33,7 @@ export default function LoginPage() {
 
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 items-center px-4 py-12">
-      <div className="animate-fade-up w-full rounded-3xl bg-white p-6 shadow-2xl shadow-blue-900/20 dark:bg-slate-900 sm:p-8">
+      <div className="animate-fade-up w-full rounded-3xl bg-white p-6 shadow-2xl shadow-blue-900/20 sm:p-8">
         <div className="mb-6 text-center">
           <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30">
             <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -44,17 +44,17 @@ export default function LoginPage() {
               />
             </svg>
           </span>
-          <h1 className="mt-4 text-2xl font-extrabold tracking-tight text-gray-900 dark:text-slate-100">
+          <h1 className="mt-4 text-2xl font-extrabold tracking-tight text-gray-900">
             Acesse a plataforma
           </h1>
-          <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
+          <p className="mt-1 text-sm text-gray-500">
             Entre com sua conta para assistir às aulas.
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-slate-300">E-mail</label>
+            <label className="mb-1.5 block text-sm font-semibold text-gray-700">E-mail</label>
             <input
               type="email"
               required
@@ -62,12 +62,12 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="seuemail@exemplo.com"
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-800 dark:focus:bg-slate-800"
+              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200"
             />
           </div>
 
           <div>
-            <label className="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-slate-300">Senha</label>
+            <label className="mb-1.5 block text-sm font-semibold text-gray-700">Senha</label>
             <input
               type="password"
               required
@@ -75,12 +75,12 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-800 dark:focus:bg-slate-800"
+              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200"
             />
           </div>
 
           {error && (
-            <p className="rounded-xl bg-red-50 px-3 py-2.5 text-sm text-red-700 dark:bg-red-950/60 dark:text-red-300">{error}</p>
+            <p className="rounded-xl bg-red-50 px-3 py-2.5 text-sm text-red-700">{error}</p>
           )}
 
           <button
@@ -92,9 +92,9 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <p className="mt-5 text-center text-xs text-gray-400 dark:text-slate-500">
+        <p className="mt-5 text-center text-xs text-gray-400">
           Sua conta é criada pelo administrador da plataforma.{" "}
-          <Link href="/" className="font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400">
+          <Link href="/" className="font-semibold text-blue-600 hover:text-blue-700">
             Voltar ao início
           </Link>
         </p>
