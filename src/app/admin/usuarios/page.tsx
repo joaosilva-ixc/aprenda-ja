@@ -146,6 +146,28 @@ export default function AdminUsersPage() {
     }
   }
 
+  async function handleReset2fa(user: User) {
+    if (
+      !window.confirm(
+        `Limpar o 2FA de ${user.name}? A sessão dele será encerrada e ele precisará configurar a verificação novamente no próximo login.`,
+      )
+    ) {
+      return;
+    }
+    try {
+      const res = await fetch(`/api/admin/users/${user.id}/reset-2fa`, { method: "POST" });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        window.alert(data?.error ?? "Erro ao limpar o 2FA.");
+        return;
+      }
+      window.alert("2FA removido com sucesso. O usuário poderá configurar novamente.");
+      fetchUsers();
+    } catch {
+      window.alert("Falha de rede ao limpar o 2FA.");
+    }
+  }
+
   function openEdit(user: User) {
     setEditing(user);
     setEditName(user.name);
@@ -349,6 +371,15 @@ export default function AdminUsersPage() {
                       className="rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-600 transition hover:bg-blue-100 active:scale-95"
                     >
                       Editar
+                    </button>
+                  )}
+                  {current?.role === "MASTER" && user.id !== current?.id && user.role !== "ALUNO" && (
+                    <button
+                      onClick={() => handleReset2fa(user)}
+                      title="Limpar 2FA para configurar novamente"
+                      className="rounded-lg bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-600 transition hover:bg-amber-100 active:scale-95"
+                    >
+                      Limpar 2FA
                     </button>
                   )}
                   {user.role !== "MASTER" && user.id !== current?.id && (
