@@ -138,7 +138,7 @@ export default function UploadPage() {
 
     try {
       const blobResult = await upload(`aulas/${file.name}`, file, {
-        access: "public",
+        access: "private",
         handleUploadUrl: "/api/blob/upload",
         contentType: file.type || "video/mp4",
         onUploadProgress: ({ percentage }) => setProgress(percentage),

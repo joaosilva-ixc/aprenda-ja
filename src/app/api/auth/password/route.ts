@@ -23,7 +23,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Erro interno" }, { status: 500 });
   }
 
-  const ipLimit = rateLimit(`password:${getClientIp(request)}`, {
+  const ipLimit = await rateLimit(`password:${getClientIp(request)}`, {
     limit: 5,
     windowMs: 60_000,
   });

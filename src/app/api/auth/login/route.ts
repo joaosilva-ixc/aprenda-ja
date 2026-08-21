@@ -11,7 +11,7 @@ const DUMMY_HASH = "$2a$12$C6UzMDM.H6dfI/f/IKcEe.WvJ8sJcVLGVGGRIvbTQ0zJBpVMHqQ4y
 export async function POST(request: Request) {
   const ip = getClientIp(request);
 
-  const ipLimit = rateLimit(`login:ip:${ip}`, { limit: 10, windowMs: 60_000 });
+  const ipLimit = await rateLimit(`login:ip:${ip}`, { limit: 10, windowMs: 60_000 });
   if (!ipLimit.ok) {
     return NextResponse.json(
       { error: "Muitas tentativas. Tente novamente mais tarde." },
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
   }
   const { email, password } = parsed.data;
 
-  const emailLimit = rateLimit(`login:email:${email}`, {
+  const emailLimit = await rateLimit(`login:email:${email}`, {
     limit: 5,
     windowMs: 5 * 60_000,
   });

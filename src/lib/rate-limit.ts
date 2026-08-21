@@ -1,33 +1,74 @@
 import "server-only";
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
 
-type Bucket = { count: number; resetAt: number };
+export type RateLimitResult = { ok: boolean; retryAfterSec: number };
 
-const buckets = new Map<string, Bucket>();
+type MemoryBucket = { count: number; resetAt: number };
+
+const memoryBuckets = new Map<string, MemoryBucket>();
 const MAX_BUCKETS = 10_000;
 
-function cleanup(now: number) {
-  if (buckets.size < MAX_BUCKETS) return;
-  for (const [key, bucket] of buckets) {
-    if (bucket.resetAt <= now) buckets.delete(key);
+const ratelimiters = new Map<
+  string,
+  { limiter: Ratelimit; windowMs: number } | null
+>();
+
+function cleanupMemory(now: number) {
+  if (memoryBuckets.size < MAX_BUCKETS) return;
+  for (const [key, bucket] of memoryBuckets) {
+    if (bucket.resetAt <= now) memoryBuckets.delete(key);
   }
 }
 
-export function getClientIp(request: Request): string {
-  const forwarded = request.headers.get("x-forwarded-for");
-  if (forwarded) return forwarded.split(",")[0].trim();
-  return request.headers.get("x-real-ip") ?? "unknown";
+function getUpstashLimiter(
+  limit: number,
+  windowMs: number,
+): { limiter: Ratelimit; windowMs: number } | null {
+  const cacheKey = `${limit}:${windowMs}`;
+  if (ratelimiters.has(cacheKey)) return ratelimiters.get(cacheKey) ?? null;
+
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  let instance: { limiter: Ratelimit; windowMs: number } | null = null;
+
+  if (url && token) {
+    instance = {
+      limiter: new Ratelimit({
+        redis: new Redis({ url, token }),
+        limiter: Ratelimit.slidingWindow(limit, `${windowMs} ms`),
+        prefix: "aprendaja",
+      }),
+      windowMs,
+    };
+  }
+  ratelimiters.set(cacheKey, instance);
+  return instance;
 }
 
-export function rateLimit(
+export async function rateLimit(
   key: string,
   { limit, windowMs }: { limit: number; windowMs: number },
-): { ok: boolean; retryAfterSec: number } {
-  const now = Date.now();
-  cleanup(now);
+): Promise<RateLimitResult> {
+  const distributed = getUpstashLimiter(limit, windowMs);
+  if (distributed) {
+    try {
+      const { success, reset } = await distributed.limiter.limit(key);
+      return {
+        ok: success,
+        retryAfterSec: Math.max(1, Math.ceil((reset - Date.now()) / 1000)),
+      };
+    } catch (err) {
+      console.error("Rate limit distribuído indisponível, usando memória:", err);
+    }
+  }
 
-  const bucket = buckets.get(key);
+  const now = Date.now();
+  cleanupMemory(now);
+
+  const bucket = memoryBuckets.get(key);
   if (!bucket || bucket.resetAt <= now) {
-    buckets.set(key, { count: 1, resetAt: now + windowMs });
+    memoryBuckets.set(key, { count: 1, resetAt: now + windowMs });
     return { ok: true, retryAfterSec: 0 };
   }
 
@@ -39,4 +80,10 @@ export function rateLimit(
     };
   }
   return { ok: true, retryAfterSec: 0 };
+}
+
+export function getClientIp(request: Request): string {
+  const forwarded = request.headers.get("x-forwarded-for");
+  if (forwarded) return forwarded.split(",")[0].trim();
+  return request.headers.get("x-real-ip") ?? "unknown";
 }

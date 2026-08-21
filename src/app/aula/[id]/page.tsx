@@ -118,7 +118,7 @@ export default async function AulaPage({
             {canPlay ? (
               <AulaPlayer
                 aulaId={aula.id}
-                videoUrl={aula.videoUrl}
+                videoUrl={`/api/videos/${aula.id}`}
                 statusLabel={statusLabels[aula.status]}
                 initialCompleted={progress?.completed ?? false}
                 initialFavorite={progress?.favorite ?? false}
