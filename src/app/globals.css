@@ -81,6 +81,16 @@ body {
     linear-gradient(150deg, #020617 0%, #0b1120 40%, #111c36 70%, #16294e 100%);
 }
 
+.dark {
+  color-scheme: dark;
+}
+
+.dark select,
+.dark option {
+  background-color: #1e293b;
+  color: #e2e8f0;
+}
+
 ::selection {
   background: rgba(59, 130, 246, 0.25);
 }
