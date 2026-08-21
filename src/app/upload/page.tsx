@@ -137,12 +137,22 @@ export default function UploadPage() {
     setProgress(0);
 
     try {
-      const blobResult = await upload(`aulas/${file.name}`, file, {
-        access: "private",
-        handleUploadUrl: "/api/blob/upload",
-        contentType: file.type || "video/mp4",
-        onUploadProgress: ({ percentage }) => setProgress(percentage),
-      });
+      let blobResult;
+      try {
+        blobResult = await upload(`aulas/${file.name}`, file, {
+          access: "private",
+          handleUploadUrl: "/api/blob/upload",
+          contentType: file.type || "video/mp4",
+          onUploadProgress: ({ percentage }) => setProgress(percentage),
+        });
+      } catch {
+        blobResult = await upload(`aulas/${file.name}`, file, {
+          access: "public",
+          handleUploadUrl: "/api/blob/upload",
+          contentType: file.type || "video/mp4",
+          onUploadProgress: ({ percentage }) => setProgress(percentage),
+        });
+      }
 
       let thumbnailUrl: string | null = null;
       const thumbBlob = await captureThumbnail(file);
