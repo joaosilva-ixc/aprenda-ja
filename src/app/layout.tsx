@@ -70,6 +70,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-2 px-4 text-center">
             <p className="text-sm font-semibold text-white">Aprenda Já · Academy</p>
             <p className="text-xs text-blue-100/70">Desenvolvido por João Pedro</p>
+            <a
+              href="https://central-opasuite.ixcsoft.com.br/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs font-medium text-blue-100/70 transition hover:text-white"
+            >
+              Central de Ajuda do Opa
+            </a>
           </div>
         </footer>
       </body>
