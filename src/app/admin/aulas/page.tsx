@@ -71,6 +71,7 @@ export default function AdminAulasPage() {
   const [materialFile, setMaterialFile] = useState<File | null>(null);
   const [materialBusy, setMaterialBusy] = useState(false);
   const captionsInputRef = useRef<HTMLInputElement | null>(null);
+  const materialInputRef = useRef<HTMLInputElement | null>(null);
 
   const fetchAulas = useCallback(async () => {
     setLoading(true);
@@ -158,20 +159,43 @@ export default function AdminAulasPage() {
     return chapters;
   }
 
-  async function uploadMaterialPdf(aulaId: string, file: File) {
+  async function uploadMaterialPdf(file: File) {
     try {
-      return await upload(`materiais/${file.name}`, file, {
-        access: "private",
-        handleUploadUrl: "/api/blob/upload",
-        contentType: file.type || "application/pdf",
-      });
-    } catch {
       return await upload(`materiais/${file.name}`, file, {
         access: "public",
         handleUploadUrl: "/api/blob/upload",
         contentType: file.type || "application/pdf",
       });
+    } catch {
+      return await upload(`materiais/${file.name}`, file, {
+        access: "private",
+        handleUploadUrl: "/api/blob/upload",
+        contentType: file.type || "application/pdf",
+      });
     }
+  }
+
+  async function registerMaterial(aulaId: string, file: File) {
+    const blobResult = await uploadMaterialPdf(file);
+    const res = await fetch(`/api/admin/aulas/${aulaId}/materiais`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: file.name.replace(/\.[^.]+$/, ""),
+        url: blobResult.url,
+        pathname: blobResult.pathname,
+        sizeBytes: file.size,
+        contentType: file.type || "application/pdf",
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error ?? "Erro ao registrar material.");
+    return data.material as Material;
+  }
+
+  function clearMaterialFile() {
+    setMaterialFile(null);
+    if (materialInputRef.current) materialInputRef.current.value = "";
   }
 
   async function handleAddMaterial() {
@@ -179,25 +203,12 @@ export default function AdminAulasPage() {
     setMaterialBusy(true);
     setEditError("");
     try {
-      const blobResult = await uploadMaterialPdf(editing.id, materialFile);
-      const res = await fetch(`/api/admin/aulas/${editing.id}/materiais`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: materialFile.name.replace(/\.[^.]+$/, ""),
-          url: blobResult.url,
-          pathname: blobResult.pathname,
-          sizeBytes: materialFile.size,
-          contentType: materialFile.type || "application/pdf",
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Erro ao registrar material.");
+      const material = await registerMaterial(editing.id, materialFile);
       setEditing({
         ...editing,
-        materials: [...(editing.materials ?? []), data.material],
+        materials: [...(editing.materials ?? []), material],
       });
-      setMaterialFile(null);
+      clearMaterialFile();
       fetchAulas();
     } catch (err) {
       setEditError(err instanceof Error ? err.message : "Erro ao enviar material.");
@@ -250,6 +261,19 @@ export default function AdminAulasPage() {
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.error ?? "Erro ao atualizar a aula.");
+      }
+      if (materialFile) {
+        try {
+          await registerMaterial(editing.id, materialFile);
+          clearMaterialFile();
+        } catch (err) {
+          setEditError(
+            `A aula foi salva, mas o material não pôde ser enviado: ${
+              err instanceof Error ? err.message : "erro desconhecido"
+            }`,
+          );
+          return;
+        }
       }
       setEditing(null);
       fetchAulas();
@@ -568,6 +592,7 @@ export default function AdminAulasPage() {
                 )}
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   <input
+                    ref={materialInputRef}
                     type="file"
                     accept="application/pdf,.pdf"
                     onChange={(e) => setMaterialFile(e.target.files?.[0] ?? null)}
@@ -579,7 +604,7 @@ export default function AdminAulasPage() {
                     onClick={handleAddMaterial}
                     className="rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-600 transition hover:bg-blue-100 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    {materialBusy ? "Enviando…" : "Adicionar"}
+                    {materialBusy ? "Enviando…" : "Adicionar PDF"}
                   </button>
                 </div>
               </div>
